@@ -492,6 +492,7 @@ h1,h2,.q,.greet,.vmodel{font-family:var(--font-h)}
 .mm-body{padding:20px 18px 24px;background:#fff}
 .tbl td small{display:block}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.dberr{color:#B42318;font-weight:600}
 </style>
 </head>
 <body>
@@ -1254,7 +1255,7 @@ async function codeLogin(){
   const fail=k=>{e.textContent=t(k);e.hidden=false;const f=document.getElementById('acode');if(f){f.focus();f.select();}};
   if(!v)return fail('code_e0');
   if(await pnHash('admin:'+v)!==ADMIN_H)return fail('code_e');
-  S.code='';S.loginCode=false;A.login({dataset:{u:'u6'}});
+  S.adminCode=v;S.code='';S.loginCode=false;A.login({dataset:{u:'u6'}});loadAdmin();
 }
 function vLoginCode(){
   return `<main class="login picker"><button class="linkbtn backlink" data-act="loginback">${ic('back')}${t('back')}</button><div class="login-h"><h1>${t('code_t')}</h1><p class="hint">${t('code_h')}</p></div>
@@ -1302,7 +1303,7 @@ function next(){
 function submit(){
   if(S.submitting)return;
   S.submitting=true;render();
-  setTimeout(()=>{
+  setTimeout(async()=>{
     const d=S.data,v=veh(),km=isTrailer(v)?null:num(d.km);
     const rec={id:'FZ-2026-'+String(++S.seq).padStart(5,'0'),kind:S.flow,veh:v.id,who:S.user.name,at:new Date(),km,prio:null};
     let notice={cls:'normal',key:'nNormal'};
@@ -1319,7 +1320,10 @@ function submit(){
       notice=missing.length||rec.notClean?{cls:'hoch',key:'nUebIssue'}:{cls:'normal',key:'nUebOk'};
     }
     rec.notice=notice;
-    sendMails(rec);
+    const pnh=S.user.pnh;
+    const id=await dbInsert(rec,pnh);
+    if(id){rec.id=id;}else{rec.id='FZ-LOKAL-'+Date.now().toString(36).toUpperCase();rec._unsynced=true;const q=pendLoad();q.push({rec:fullRec(rec),pnh});pendSave(q);}
+    sendMails(rec).then(()=>{if(!rec._unsynced&&rec.mails)rpc('fz_mails',{p_pnh:pnh,p_id:rec.id,p_mails:rec.mails}).catch(()=>{});});
     S.history.unshift(rec);if(km!=null)v.lastKm=Math.max(v.lastKm||0,km);
     S.last=rec;S.submitting=false;S.flow=null;S.screen='done';render();top0();
   },900);
@@ -1403,6 +1407,7 @@ const vstPill=s=>`<span class="st vst-${s}">${VST_L[s]}</span>`;
 const prPill=p=>p?`<span class="pill p-${p}">${deL('prio_'+p)}</span>`:'';
 const userBy=n=>USERS.find(u=>u.name===n);
 
+function dbInfo(){return S.dbState==='fehler'?'<span class="dberr">Keine Verbindung zur Datenbank – Daten nicht aktuell</span>':S.dbState==='laden'&&!S.dbAt?'Daten werden geladen …':S.dbAt?'Stand '+S.dbAt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}):'';}
 function aShell(content){
   const cnt=openM().length;
   return `<header class="atop"><img class="logo" src="${LOGO}" alt="Clean Service by Scaramuzzo" width="2059" height="650"><span class="brand-tx">Verwaltung Fahrzeuge</span><button class="who" data-act="sheet" data-s="account" aria-label="Konto"><i>${S.user.initials}</i><span class="who-r">${esc(S.user.name)}</span></button></header>
@@ -1421,7 +1426,7 @@ function aDash(){
   const wk=S.history.filter(h=>h.at>=Date.now()-7*864e5).length;
   const asg=VEH.filter(v=>assignment(v.id)).length,shop=VEH.filter(v=>v.status==='werkstatt').length;
   const feed=S.history.slice().sort((a,b)=>b.at-a.at).slice(0,8);
-  return aHead('Übersicht',now.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+
+  return aHead('Übersicht',now.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+dbInfo(),`<button class="secondary sm" data-act="areload">Aktualisieren</button>`)+
   `<div class="kpis">${kpi('Offene Meldungen',om.length,crit?`${crit} mit hoher Priorität`:'Keine mit hoher Priorität',crit?'danger':'')}${kpi('Tankkosten '+now.toLocaleDateString('de-CH',{month:'long'}),chf(cost),`${tk.length} Tankvorgänge`)}${kpi('Fahrzeuge zugeteilt',`${asg} / ${VEH.length}`,`${shop} in Werkstatt`)}${kpi('Vorgänge 7 Tage',wk,'Tanken, Meldungen, Übernahmen')}</div>
   <div class="acols"><section class="apanel"><div class="apanel-h"><h2>Offene Meldungen</h2><button class="linkbtn" data-act="aview" data-v="meldungen">Alle anzeigen</button></div>${om.length?`<div class="mlist">${sortM(om).slice(0,6).map(mRow).join('')}</div>`:'<p class="empty pad">Keine offenen Meldungen.</p>'}</section>
   <section class="apanel"><div class="apanel-h"><h2>Letzte Aktivität</h2></div><ul class="feed">${feed.map(h=>{const [i,tn]=evIcon(h);const v=veh(h.veh);return `<li><span class="ev-ic t-${tn}">${ic(i)}</span><span><b>${esc(evTitle(h))}</b> · ${esc(v.model)} ${esc(v.plate)}<small>${esc(h.who)} · ${rel(h.at)}</small></span></li>`;}).join('')}</ul></section></div>`;
@@ -1453,7 +1458,7 @@ function aDrawer(){
     <button class="secondary" data-act="pdf" data-id="${h.id}">PDF auf Logopapier erstellen</button>
     <div class="vbox">${vLabel(v)}<span>${vstPill(v.status)}</span></div>
     <dl class="sum">${rows.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>
-    ${h.photos&&h.photos.length?`<div><h3 class="h3">Fotos</h3><div class="pgrid">${h.photos.map((s,i)=>`<button class="thumb" data-act="img" data-id="${h.id}" data-i="${i}"><img src="${s}" alt="Foto ${i+1}"></button>`).join('')}</div></div>`:''}
+    ${h._light&&h.nPh?`<div><h3 class="h3">Fotos</h3><p class="hint">Fotos werden geladen …</p></div>`:''}${h.photos&&h.photos.length?`<div><h3 class="h3">Fotos</h3><div class="pgrid">${h.photos.map((s,i)=>`<button class="thumb" data-act="img" data-id="${h.id}" data-i="${i}"><img src="${s}" alt="Foto ${i+1}"></button>`).join('')}</div></div>`:''}
     ${h.mails&&h.mails.length?`<div><h3 class="h3">E-Mails</h3>${mailList(h,h.mails)}</div>`:''}
     <div class="apanel pad"><h3 class="h3">Bearbeitung</h3>
       <div class="seg3" role="group" aria-label="Status">${Object.entries(ST_L).map(([k,l])=>`<button class="${h.status===k?'on':''}" data-act="mstatus" data-st="${k}" aria-pressed="${h.status===k}">${l}</button>`).join('')}</div>
@@ -1596,14 +1601,14 @@ function mlog(h,text){(h.log=h.log||[]).push({at:new Date(),who:S.user.name,text
 const curM=()=>S.history.find(x=>x.id===S.aSel);
 
 Object.assign(A,{
-  aview:b=>{S.aView=b.dataset.v;S.aSel=null;render();top0();},
+  aview:b=>{S.aView=b.dataset.v;S.aSel=null;render();top0();loadAdmin(true);},
   afilter:b=>{S[b.dataset.k]=b.dataset.f;render();},
-  msel:b=>{S.aSel=b.dataset.id;render();},
+  msel:async b=>{const id=b.dataset.id;S.aSel=id;render();const h=S.history.find(x=>x.id===id);if(h&&h._light){await ensureFull(id);if(S.aSel===id)render();}},
   mclose:()=>{S.aSel=null;render();},
-  mstatus:b=>{const h=curM();if(h.status===b.dataset.st)return;h.status=b.dataset.st;mlog(h,'Status: '+ST_L[h.status]);toast('Status geändert: '+ST_L[h.status]);},
-  mnote:()=>{const el=document.getElementById('m-note');const x=(el.value||'').trim();if(!x){el.focus();return;}mlog(curM(),'Notiz: '+x);toast('Notiz hinzugefügt');},
-  vshop:b=>{const v=veh(b.dataset.id);v.status='werkstatt';mlog(curM(),'Fahrzeug auf «In Werkstatt» gesetzt');toast('Fahrzeug steht jetzt auf «In Werkstatt»');},
-  vactive:b=>{const v=veh(b.dataset.id);v.status='aktiv';mlog(curM(),'Fahrzeug wieder auf «Aktiv» gesetzt');toast('Fahrzeug ist wieder aktiv');},
+  mstatus:b=>{const h=curM();if(h.status===b.dataset.st)return;h.status=b.dataset.st;mlog(h,'Status: '+ST_L[h.status]);dbPatch(h);toast('Status geändert: '+ST_L[h.status]);},
+  mnote:()=>{const el=document.getElementById('m-note');const x=(el.value||'').trim();if(!x){el.focus();return;}mlog(curM(),'Notiz: '+x);dbPatch(curM());toast('Notiz hinzugefügt');},
+  vshop:b=>{const v=veh(b.dataset.id);v.status='werkstatt';dbVStatus(v);mlog(curM(),'Fahrzeug auf «In Werkstatt» gesetzt');dbPatch(curM());toast('Fahrzeug steht jetzt auf «In Werkstatt»');},
+  vactive:b=>{const v=veh(b.dataset.id);v.status='aktiv';dbVStatus(v);mlog(curM(),'Fahrzeug wieder auf «Aktiv» gesetzt');dbPatch(curM());toast('Fahrzeug ist wieder aktiv');},
   vopen:b=>{S.aVeh=b.dataset.id;S.aView='fahrzeug';render();top0();},
   modal:b=>{S.modal={t:b.dataset.m};render();const f=document.querySelector('.modal input');if(f)f.focus();},
   mclosemodal:()=>{S.modal=null;render();},
@@ -1614,17 +1619,17 @@ Object.assign(A,{
   tvehf:b=>{S.tveh=b.dataset.id;render();},
   treset:()=>{S.tm=0;S.tveh='all';S.tdept='all';render();},
   vtank:b=>{S.tveh=b.dataset.id;S.tm='all';S.tdept='all';S.aView='tanken';render();top0();},
-  login:b=>{const u=USERS.find(x=>x.id===b.dataset.u);S.account=u.role;S.user=u;S.vehicleId=null;S.changedVeh=false;S.afterPick=null;S.loginPick=false;S.lq='';S.screen='home';S.aView='dash';S.sheet=null;render();top0();},
+  login:b=>{const u=USERS.find(x=>x.id===b.dataset.u);S.account=u.role;S.user=u;S.vehicleId=null;S.changedVeh=false;S.afterPick=null;S.loginPick=false;S.lq='';S.screen='home';S.aView='dash';S.sheet=null;S.history=[];render();top0();if(u.role==='ma')loadMine();},
   loginpick:()=>{S.loginPick=true;render(true);top0();},
   loginback:()=>{S.loginPick=false;S.loginCode=false;S.pnCand=null;render();top0();},
   logincode:()=>{S.loginCode=true;render(true);top0();},
   pnyes:b=>{S.pnCand=null;A.login(b);},
   pnno:()=>{S.pnCand=null;S.pn='';render();top0();const f=document.getElementById('pn');if(f)f.focus();},
-  logout:()=>{S.account=null;S.user=null;S.sheet=null;S.aSel=null;S.modal=null;S.flow=null;render();top0();}
+  logout:()=>{S.adminCode=null;S.history=[];S.fullCache={};S.account=null;S.user=null;S.sheet=null;S.aSel=null;S.modal=null;S.flow=null;render();top0();}
 });
 app.addEventListener('change',e=>{
   const x=e.target,k=x.dataset.adm;if(!k)return;
-  if(k==='assign'){const h=curM();h.assignee=x.value||null;mlog(h,'Zuständig: '+(x.value||'niemand'));if(x.value&&h.status==='offen'){h.status='bearbeitung';mlog(h,'Status: In Bearbeitung');}toast('Zuständigkeit gespeichert');}
+  if(k==='assign'){const h=curM();h.assignee=x.value||null;mlog(h,'Zuständig: '+(x.value||'niemand'));if(x.value&&h.status==='offen'){h.status='bearbeitung';mlog(h,'Status: In Bearbeitung');}dbPatch(h);toast('Zuständigkeit gespeichert');}
   if(k==='tm'){S.tm=x.value==='all'?'all':+x.value;render();}
   if(k==='tveh'){S.tveh=x.value;render();}
   if(k==='urole'){const u=USERS.find(y=>y.id===x.dataset.id);u.role=x.value;toast(`${u.name}: ${x.value==='admin'?'Verwaltung':'Mitarbeiter-App'}`);}
@@ -1644,7 +1649,7 @@ app.addEventListener('submit',e=>{
     const pn=d.plate.replace(/\s/g,'').toUpperCase();
     if(VEH.some(v=>v!==self&&v.plate.replace(/\s/g,'').toUpperCase()===pn))return err(`Das Kennzeichen ${d.plate} ist bereits erfasst.`);
     const data={model:d.model,nr:d.nr,plate:d.plate.toUpperCase(),kind:d.kind,fuel:d.kind==='anhaenger'?null:(d.fuel||null)};
-    if(self){Object.assign(self,data,{status:d.status});toast('Stammdaten gespeichert');}
+    if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);toast('Stammdaten gespeichert');}
     else{VEH.push(Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data));VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}
   }
   if(f.dataset.form==='adduser'){
@@ -1751,6 +1756,7 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
 }
 
 async function savePdf(id,ext){
+  if(S.history.find(h=>h.id===id&&h._light)){toast(t('pdf_busy'));await ensureFull(id);}
   const rec=(S.history.find(h=>h.id===id))||(S.sampleRec&&S.sampleRec.id===id?S.sampleRec:null);if(!rec)return;
   if(!window.PDFLib){toast(t('pdf_err'));return;}
   toast(t('pdf_busy'));
@@ -1862,6 +1868,102 @@ Object.assign(A,{
   mailprev:b=>{S.modal={t:'mail',id:b.dataset.id,i:+b.dataset.i,sample:b.dataset.sample==='1'};render();},
   mailsample:b=>{S.sampleRec=sampleRec(b.dataset.k);S.modal={t:'mail',id:S.sampleRec.id,i:+b.dataset.i,sample:true};render();}
 });
+
+/* ================= Gemeinsame Datenbank (Supabase) ================= */
+const SB_URL='https://yjnkaeplhxcsubwqpqkz.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqbmthZXBsaHhjc3Vid3FwcWt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjM5MzAsImV4cCI6MjEwNTE5OTkzMH0.nruDrgHbM2quYxo9MyjhMsDSC5gabTj6aO3R2YXmVZ8';
+async function rpc(fn,args){
+  const r=await fetch(SB_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify(args||{})});
+  if(!r.ok)throw new Error(fn+': HTTP '+r.status+' '+(await r.text()).slice(0,160));
+  const tx=await r.text();return tx?JSON.parse(tx):null;
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* Datumsfelder nach JSON wieder zu Date machen */
+function revive(r){
+  if(!r)return r;r.at=new Date(r.at);
+  (r.log||[]).forEach(l=>{l.at=new Date(l.at);});
+  (r.mails||[]).forEach(m=>{if(m.sentAt)m.sentAt=new Date(m.sentAt);});
+  if(r.gps&&r.gps.at)r.gps.at=new Date(r.gps.at);
+  return r;
+}
+/* Leichte Version ohne Fotos für Listen */
+function lightRec(r){
+  const x=JSON.parse(JSON.stringify(r));
+  x.nPh=(r.photos||[]).length+(r.keyPhotos||[]).length;
+  x.photos=[];x.keyPhotos=[];x.slotPhotos={};
+  if(x.third&&x.third.file)x.third.file={name:x.third.file.name,type:x.third.file.type};
+  x._light=true;return x;
+}
+function fullRec(r){const x=JSON.parse(JSON.stringify(r));delete x._light;return x;}
+
+/* Vorgang speichern – mit Wiederholung; klappt es nicht, bleibt er in der Warteschlange */
+const PENDING_K='cs-fz-pending';
+function pendLoad(){try{return JSON.parse(localStorage.getItem(PENDING_K)||'[]');}catch(e){return [];}}
+function pendSave(a){try{localStorage.setItem(PENDING_K,JSON.stringify(a));}catch(e){}}
+async function dbInsert(rec,pnh){
+  for(let i=0;i<3;i++){
+    try{return await rpc('fz_insert',{p_rec:lightRec(rec),p_daten:fullRec(rec),p_pnh:pnh});}
+    catch(e){console.warn(e);await sleep(700*(i+1));}
+  }
+  return null;
+}
+async function flushPending(){
+  const a=pendLoad();if(!a.length)return;const rest=[];
+  for(const p of a){try{const id=await rpc('fz_insert',{p_rec:lightRec(p.rec),p_daten:fullRec(p.rec),p_pnh:p.pnh});const h=S.history.find(x=>x.id===p.rec.id);if(h){h.id=id;delete h._unsynced;}}catch(e){rest.push(p);}}
+  pendSave(rest);if(a.length!==rest.length&&S.account)render();
+}
+setInterval(()=>{if(navigator.onLine!==false)flushPending();},30000);
+setTimeout(flushPending,3000);
+
+/* Mitarbeiter: eigene Vorgänge + KM-Stände laden */
+async function loadMine(){
+  const u=S.user;if(!u||!u.pnh)return;
+  try{
+    const [mine,km]=await Promise.all([rpc('fz_mine',{p_pnh:u.pnh}),rpc('fz_km')]);
+    applyKm(km);
+    const loc=S.history.filter(h=>h._unsynced);
+    S.history=[...loc,...(mine||[]).map(revive)];
+    if(S.account==='ma'&&S.screen!=='flow')render();
+  }catch(e){console.warn(e);}
+}
+function applyKm(km){VEH.forEach(v=>{const k=km&&km[v.id];if(k!=null)v.lastKm=Math.max(v.lastKm||0,+k);});}
+
+/* Verwaltung: alles laden */
+async function loadAdmin(quiet){
+  if(S.account!=='admin'||!S.adminCode)return;
+  if(!quiet){S.dbState='laden';}
+  try{
+    const d=await rpc('fz_list',{p_code:S.adminCode,p_tage:400});
+    const full=S.fullCache||(S.fullCache={});
+    S.history=(d.vorgaenge||[]).map(r=>{r=revive(r);const f=full[r.id];if(f){const keep={status:r.status,assignee:r.assignee,log:r.log,mails:r.mails};return Object.assign(f,keep);}return r;});
+    VEH.forEach(v=>{v.status=(d.fahrzeuge&&d.fahrzeuge[v.id])||'aktiv';v.lastKm=null;});
+    S.history.forEach(h=>{const v=VEH.find(x=>x.id===h.veh);if(v&&h.km!=null)v.lastKm=Math.max(v.lastKm||0,h.km);});
+    S.dbState='ok';S.dbAt=new Date();
+  }catch(e){console.warn(e);S.dbState='fehler';}
+  const a=document.activeElement;const typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');
+  if(S.account==='admin'&&!(quiet&&typing))render();
+}
+setInterval(()=>{if(S.account==='admin'&&!S.modal)loadAdmin(true);},60000);
+
+/* Vollständigen Datensatz (mit Fotos) nachladen */
+async function ensureFull(id){
+  const h=S.history.find(x=>x.id===id);if(!h||!h._light)return h;
+  try{
+    const f=S.account==='admin'?await rpc('fz_get',{p_code:S.adminCode,p_id:id}):await rpc('fz_get_mine',{p_pnh:S.user.pnh,p_id:id});
+    if(f){revive(f);const keep={status:h.status,assignee:h.assignee,log:h.log,mails:h.mails||f.mails};Object.assign(h,f,keep);delete h._light;(S.fullCache||(S.fullCache={}))[id]=h;}
+  }catch(e){console.warn(e);}
+  return h;
+}
+/* Änderungen der Verwaltung speichern */
+function dbPatch(h){
+  if(S.account!=='admin'||!h||h._unsynced)return;
+  rpc('fz_update',{p_code:S.adminCode,p_id:h.id,p_patch:{status:h.status||null,assignee:h.assignee||null,log:h.log||[]}}).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
+}
+function dbVStatus(v){
+  if(S.account!=='admin')return;
+  rpc('fz_set_vstatus',{p_code:S.adminCode,p_veh:v.id,p_status:v.status}).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
+}
+Object.assign(A,{areload:()=>{toast('Wird aktualisiert …');loadAdmin();}});
 
 })();
 </script>
