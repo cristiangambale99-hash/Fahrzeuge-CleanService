@@ -1563,14 +1563,14 @@ function aUsers(){
   <div class="tbl-wrap" id="utbl">${uTable()}</div><p class="hint">In der finalen App kommt diese Liste direkt aus derselben Mitarbeiter-Datenbank wie die Materialbestellung; neue Personen melden sich mit ihrem Firmenkonto an.</p>`;
 }
 function aSettings(){
-  const EV=[['tanken','Tankvorgang'],['schaden','Schaden'],['service','Service nötig'],['fehler','Fehlermeldung am Fahrzeug'],['pneu','Pneuwechsel nötig'],['bremsen','Bremsen fällig']];
+  const EV=[['tanken','Tankvorgang'],['schaden','Schaden'],['service','Service nötig'],['fehler','Fehlermeldung am Fahrzeug'],['pneu','Pneuwechsel nötig'],['bremsen','Bremsen fällig'],['uebernahme','Übernahme / temporäre Nutzung / Abgabe']];
   return aHead('Benachrichtigungen','Welche E-Mails die App bei jedem Vorgang automatisch verschickt – mit PDF auf Logopapier im Anhang.')+
   `<div class="${MAIL_ENDPOINT?'notice n-normal':'warnbox'}">${MAIL_ENDPOINT?'Versand über Resend (Vercel). Absender: fahrzeuge@clean-service.ch – Antworten der Carrosserie und Garage kommen dort an. Der Status jeder Mail ist beim jeweiligen Vorgang sichtbar.':'Der E-Mail-Versand ist vorbereitet, aber noch nicht verbunden.'}</div>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ereignis</th><th>Intern</th><th>Extern</th><th>Vorschau</th></tr></thead><tbody>
   ${EV.map(([k,l])=>{const R=k==='tanken'?MAIL_RULES.tanken:MAIL_RULES[k];const cell=kind=>{const x=R.filter(r=>r[1]===kind).map(r=>MAIL_TO[r[0]]);return x.length?x.map(t=>`<b>${eh(t.label)}</b><small>${eh(t.addr)}</small>`).join(''):'<span class="muted">–</span>';};
     return `<tr><td><b>${l}</b>${k!=='tanken'&&MTYPES[k]?`<small>Priorität ${deL('prio_'+MTYPES[k].prio)}${k==='schaden'?' · mit Drittperson: sehr hoch':''}</small>`:''}</td><td>${cell('intern')}</td><td>${cell('extern')}</td><td class="docs">${R.map((r,i)=>`<button class="linkbtn" data-act="mailsample" data-k="${k}" data-i="${i}">${r[1]==='extern'?'Extern':'Intern'}</button>`).join(' · ')}</td></tr>`;}).join('')}
   </tbody></table></div>
-  <p class="hint">Übernahmen und Abgaben lösen keine E-Mail aus. Externe Mails enthalten keine Angaben zur Drittperson und keine internen Bearbeitungsnotizen.</p>`;
+  <p class="hint">Externe Mails enthalten keine Angaben zur Drittperson und keine internen Bearbeitungsnotizen.</p>`;
 }
 function aKontrolle(){
   return aHead('Fahrzeugkontrolle','Nur für die Verwaltung sichtbar.')+`<div class="lockcard"><p>Die interne Quartalskontrolle bleibt ein separates Modul und ist für Mitarbeitende nicht sichtbar.</p><p>Sie greift auf denselben Fahrzeugstamm zu, so dass Kontrollen, Mängel und die Meldungen aus der Mitarbeiter-App in derselben Fahrzeughistorie zusammenlaufen.</p><button class="secondary" disabled>Kontrolle öffnen (Verknüpfung folgt)</button></div>`;
@@ -1779,10 +1779,11 @@ const MAIL_TO={
   tank:{addr:'c08d33f1.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Tankprotokolle'},
   meld:{addr:'04fbbc5a.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Fahrzeugmeldungen'},
   carrosserie:{addr:'info@oerlike.ch',label:'Carrosserie Oerlike'},
-  garage:{addr:'info@fegolaautomobile.ch',label:'Fegola Automobile'}
+  garage:{addr:'info@fegolaautomobile.ch',label:'Fegola Automobile'},
+  ueb:{addr:'1b6e08b6.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Übernahmen/Abgaben'}
 };
-const MAIL_RULES={tanken:[['tank','intern']],schaden:[['meld','intern'],['carrosserie','extern']],service:[['meld','intern'],['garage','extern']],fehler:[['meld','intern'],['garage','extern']],pneu:[['meld','intern']],bremsen:[['meld','intern'],['garage','extern']]};
-const rulesFor=rec=>rec.kind==='tanken'?MAIL_RULES.tanken:rec.kind==='meldung'?(MAIL_RULES[rec.sub]||[]):[];
+const MAIL_RULES={tanken:[['tank','intern']],schaden:[['meld','intern'],['carrosserie','extern']],service:[['meld','intern'],['garage','extern']],fehler:[['meld','intern'],['garage','extern']],pneu:[['meld','intern']],bremsen:[['meld','intern'],['garage','extern']],uebernahme:[['ueb','intern']]};
+const rulesFor=rec=>rec.kind==='tanken'?MAIL_RULES.tanken:rec.kind==='meldung'?(MAIL_RULES[rec.sub]||[]):rec.kind==='uebernahme'?MAIL_RULES.uebernahme:[];
 const eh=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dDate=d=>d.toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'});
 const dTime=d=>d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
@@ -1794,7 +1795,7 @@ ${banner||''}${inner}
 function mailFor(rec,rule){
   const [who,kind]=rule;const v=veh(rec.veh);const to=MAIL_TO[who];const at=new Date(rec.at);
   const vehTxt=`Nr. ${v.nr} ${v.model}`;const plateTxt=v.plate;
-  const pdfName=`${rec.id}_${rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankprotokoll'):'Fahrzeugmeldung'}_${v.plate.replace(/\s/g,'')}.pdf`;
+  const pdfName=`${rec.id}_${rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankprotokoll'):rec.kind==='uebernahme'?(rec.sub==='rueckgabe'?'Fahrzeugabgabe':'Fahrzeuguebernahme'):'Fahrzeugmeldung'}_${v.plate.replace(/\s/g,'')}.pdf`;
   const base={to:[to.addr],toLabel:to.label,kind,attach:pdfName,external:kind==='extern'};
   const gpsLine=rec.gps?`${eh(rec.gps.addr||'')}${rec.gps.addr?'<br>':''}<a href="https://www.google.com/maps?q=${rec.gps.lat},${rec.gps.lon}" style="color:#177F80">Auf Karte ansehen</a>`:eh(rec.ort||'');
   if(rec.kind==='tanken'){
@@ -1803,6 +1804,17 @@ function mailFor(rec,rule){
       html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${e?'Neuer Ladevorgang':'Neuer Tankvorgang'}</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr einen ${e?'Ladevorgang':'Tankvorgang'} erfasst.</p>`+
         mailRows([['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],[e?'Energie':'Treibstoff',eh(I18N.de['fuel_'+rec.fuel])],['Menge',`${rec.liter.toFixed(1)} ${u}`],['Betrag',`<b>CHF ${rec.chf.toFixed(2)}</b>`],['Preis pro '+(e?'kWh':'Liter'),`CHF ${(rec.chf/rec.liter).toFixed(2)}`],['Mitarbeiter',eh(rec.who)],['Abteilung',rec.dept?eh(I18N.de['dept_'+rec.dept]):null],['Vorgang',rec.id]])+
         `<p style="margin:0">Das Tankprotokoll mit dem Foto der Quittung ist als PDF angehängt.</p>`)});
+  }
+  if(rec.kind==='uebernahme'){
+    const ut=I18N.de['u_'+rec.sub]||rec.sub;const ab=rec.sub==='rueckgabe';
+    const miss=(rec.missing||[]).map(k=>I18N.de['zub_'+k]||k);
+    const issue=miss.length||rec.notClean;
+    const banner=`<div style="background:${issue?'#FBEDEB':'#EEF8F9'};color:${issue?'#B8433A':'#177F80'};padding:10px 14px;border-radius:6px;font-weight:bold;margin-bottom:14px">${issue?'Bitte prüfen: '+[miss.length?'Fehlt: '+eh(miss.join(', ')):null,rec.notClean?'Fahrzeug nicht sauber':null].filter(Boolean).join(' · '):'Alles in Ordnung'}</div>`;
+    const nF=(rec.photos||[]).length+(rec.keyPhotos||[]).length||rec.nPh||0;
+    return Object.assign(base,{subject:`${ut} · ${vehTxt} · ${plateTxt} · ${rec.who} · ${dDate(at)}${issue?' · BITTE PRÜFEN':''} (${rec.id})`,
+      html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(ut)}</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr ${ab?'das Fahrzeug abgegeben':rec.sub==='temporaer'?'das Fahrzeug temporär übernommen':'das Fahrzeug definitiv übernommen'}.</p>`+
+        mailRows([['Art',eh(ut)],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],['Mitarbeiter',eh(rec.who)],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
+        `<p style="margin:0">Das Protokoll mit allen Fotos${ab?'':' und dem Dienstwagenreglement'} ist als PDF angehängt.</p>`,banner)});
   }
   const typ=I18N.de['m_'+rec.sub];const prio=rec.prio?I18N.de['prio_'+rec.prio]:'';
   const what=rec.dmg?eh((rec.dmg.types||[]).filter(k=>k!=='andere').map(k=>I18N.de['d_'+k]).concat((rec.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', ')):rec.flt?eh((rec.flt.types||[]).filter(k=>k!=='andere').map(k=>I18N.de['f_'+k]).concat((rec.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', ')):null;
@@ -1847,6 +1859,7 @@ function sampleRec(kind){
   const v=VEH.find(x=>x.nr==='46')||VEH[0];const at=new Date();
   const b={id:'FZ-2026-VORSCHAU',veh:v.id,who:'Vorname Nachname',at,km:84500,prio:null,photos:[]};
   if(kind==='tanken')return Object.assign(b,{kind:'tanken',fuel:'diesel',liter:52.4,chf:98.6,dept:'spez'});
+  if(kind==='uebernahme')return Object.assign(b,{kind:'uebernahme',sub:'definitiv',missing:['parkkarte'],notClean:false,note:'',reglement:true,keyPhotos:[],slotPhotos:{}});
   const m=Object.assign(b,{kind:'meldung',sub:kind,status:'offen',assignee:null,log:[{at,who:b.who,text:'Meldung erfasst (Mitarbeiter-App)'}],prio:MTYPES[kind].prio});
   if(kind==='schaden')Object.assign(m,{dmg:{types:['kratzer','delle'],where:['heck'],text:'Beim Rückwärtsfahren Poller touchiert'},gps:{lat:47.4122,lon:8.6934,acc:12,at,addr:'Industriestrasse 5, 8307 Effretikon'}});
   if(kind==='fehler')Object.assign(m,{flt:{types:['motor'],text:''}});
