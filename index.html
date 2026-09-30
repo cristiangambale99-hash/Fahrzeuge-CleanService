@@ -1373,7 +1373,8 @@ async function pnLogin(){
   const fail=k=>{e.textContent=t(k);e.hidden=false;const f=document.getElementById('pn');if(f)f.focus();};
   if(!v)return fail('pn_e0');
   let h;try{h=await pnHash(v);}catch(x){return fail('pn_e');}
-  const u=USERS.find(x=>x.pnh===h&&x.role==='ma');
+  let u=USERS.find(x=>x.pnh===h&&x.role==='ma');
+  if(!u){await loadDbUsers();u=USERS.find(x=>x.pnh===h&&x.role==='ma');}
   if(!u)return fail('pn_e');
   S.pn='';S.pnCand=u.id;render();top0();
 }
@@ -1699,7 +1700,7 @@ function aUsers(){
   return aHead('Mitarbeitende',`${USERS.filter(u=>u.role==='ma').length} Personen aus Springer, Spezialreinigung, Hauswartung, Putzfrauenservice und Administration – übernommen aus der App Materialbestellung.`,`<button class="primary sm" data-act="modal" data-m="adduser">${ic('plus')}Person hinzufügen</button>`)+
   `<div class="toolbar"><div class="search">${ic('search')}<input id="uq" type="search" placeholder="Name suchen" value="${esc(S.uq||'')}" aria-label="Name suchen"></div>
   <div class="chips">${[['all','Alle'],['spring','Springerteam'],['spez','Spezialreinigung'],['haus','Hauswartung'],['pfs','Putzfrauenservice'],['admin_d','Administration'],['admin','Verwaltungszugang']].map(([k,l])=>`<button class="chip ${(S.uf||'all')===k?'on':''}" data-act="afilter" data-k="uf" data-f="${k}" aria-pressed="${(S.uf||'all')===k}">${l} <span class="chip-n">${n(k)}</span></button>`).join('')}</div></div>
-  <div class="tbl-wrap" id="utbl">${uTable()}</div><p class="hint">In der finalen App kommt diese Liste direkt aus derselben Mitarbeiter-Datenbank wie die Materialbestellung; neue Personen melden sich mit ihrem Firmenkonto an.</p>`;
+  <div class="tbl-wrap" id="utbl">${uTable()}</div><p class="hint">Neue Personen mit «Person hinzufügen» erfassen – mit Personalnummer. Sie können sich danach sofort in der Mitarbeiter-App anmelden.</p>`;
 }
 function aSettings(){
   const EV=[['tanken','Tankvorgang'],['schaden','Schaden'],['service','Service nötig'],['fehler','Fehlermeldung am Fahrzeug'],['pneu','Pneuwechsel nötig'],['bremsen','Bremsen fällig'],['uebernahme','Übernahme / temporäre Nutzung / Abgabe'],['abschlepp','Abschleppdienst']];
@@ -1725,8 +1726,9 @@ function aModal(){
       <div class="frow"><label class="field" for="n-kind"><span>Typ</span><select id="n-kind" name="kind"><option value="auto">Fahrzeug</option><option value="anhaenger">Anhänger</option></select></label><label class="field" for="n-fuel"><span>Antrieb</span><select id="n-fuel" name="fuel">${Object.entries(DRIVE_L).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></label></div>
       <p class="err" id="ferr" role="alert" hidden></p><div class="frow"><button type="button" class="secondary" data-act="mclosemodal">Abbrechen</button><button class="primary" type="submit">Hinzufügen</button></div></form>`
   :`<h2>Person hinzufügen</h2><form class="form" data-form="adduser" novalidate>
-      <label class="field" for="n-name"><span>Vor- und Nachname</span><input id="n-name" name="name" required></label>
-      <div class="frow"><label class="field" for="n-dept"><span>Abteilung</span><select id="n-dept" name="dept">${DEPTS.map(d=>`<option value="${d}">${deL('dept_'+d)}</option>`).join('')}</select></label><label class="field" for="n-role"><span>Konto</span><select id="n-role" name="role"><option value="ma">Mitarbeiter-App</option><option value="admin">Verwaltung</option></select></label></div>
+      <p class="hint">Die Person meldet sich danach in der Mitarbeiter-App mit ihrer Personalnummer an. Sie wird in der gemeinsamen Datenbank gespeichert und ist sofort auf allen Handys verfügbar.</p>
+      <label class="field" for="n-name"><span>Vor- und Nachname</span><input id="n-name" name="name" autocomplete="off" required></label>
+      <div class="frow"><label class="field" for="n-pn"><span>Personalnummer</span><input id="n-pn" name="pn" inputmode="numeric" autocomplete="off" placeholder="z. B. 46083" required></label><label class="field" for="n-dept"><span>Abteilung</span><select id="n-dept" name="dept">${DEPTS.map(d=>`<option value="${d}">${deL('dept_'+d)}</option>`).join('')}</select></label></div>
       <p class="err" id="ferr" role="alert" hidden></p><div class="frow"><button type="button" class="secondary" data-act="mclosemodal">Abbrechen</button><button class="primary" type="submit">Hinzufügen</button></div></form>`;
   return `<div class="scrim top" data-act="mclosemodal"></div><div class="modal" role="dialog" aria-modal="true">${body}</div>`;
 }
@@ -1771,7 +1773,7 @@ app.addEventListener('change',e=>{
   if(k==='assign'){const h=curM();h.assignee=x.value||null;mlog(h,'Zuständig: '+(x.value||'niemand'));if(x.value&&h.status==='offen'){h.status='bearbeitung';mlog(h,'Status: In Bearbeitung');}dbPatch(h);toast('Zuständigkeit gespeichert');}
   if(k==='tm'){S.tm=x.value==='all'?'all':+x.value;render();}
   if(k==='tveh'){S.tveh=x.value;render();}
-  if(k==='urole'){const u=USERS.find(y=>y.id===x.dataset.id);u.role=x.value;toast(`${u.name}: ${x.value==='admin'?'Verwaltung':'Mitarbeiter-App'}`);}
+  if(k==='urole'){const u=USERS.find(y=>y.id===x.dataset.id);u.role=x.value;if(u.pnh)rpc('fz_user_save',{p_code:S.adminCode,p_pnh:u.pnh,p_name:u.name,p_dept:u.dept||null,p_role:u.role}).catch(()=>toast('Speichern fehlgeschlagen'));toast(`${u.name}: ${x.value==='admin'?'Verwaltung':'Mitarbeiter-App'}`);}
   if(k==='rch')S.settings[+x.dataset.i].ch=x.value;
 });
 app.addEventListener('input',e=>{const x=e.target;if(x.id==='acode'){S.code=x.value;const er=document.getElementById('pnerr');if(er)er.hidden=true;}if(x.id==='pn'){S.pn=x.value;const er=document.getElementById('pnerr');if(er)er.hidden=true;}if(x.id==='uq'){S.uq=x.value;document.getElementById('utbl').innerHTML=uTable();}if(x.id==='vq'){S.vq=x.value;document.getElementById('vtbl').innerHTML=vTable(VEH.filter(v=>!S.vq.trim()||(v.model+' '+v.nr+' '+v.plate+' '+v.plate.replace(/\s/g,'')).toLowerCase().includes(S.vq.trim().toLowerCase())),openM());}if(x.dataset.adm==='rto')S.settings[+x.dataset.i].to=x.value;});
@@ -1792,9 +1794,18 @@ app.addEventListener('submit',e=>{
     else{VEH.push(Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data));VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}
   }
   if(f.dataset.form==='adduser'){
-    if(d.name.split(/\s+/).length<2)return err('Bitte Vor- und Nachname eingeben.');
-    const ini=d.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
-    USERS.push({id:'u'+Date.now().toString(36),name:d.name,first:d.name.split(/\s+/)[0],initials:ini,dept:d.dept,role:d.role});S.modal=null;toast(`${d.name} hinzugefügt`);
+    (async()=>{
+      const name=d.name.replace(/\s+/g,' ').trim();const pn=(d.pn||'').replace(/\D/g,'');
+      if(name.split(' ').length<2)return err('Bitte Vor- und Nachname eingeben.');
+      if(!pn)return err('Bitte die Personalnummer eingeben – ohne sie kann sich die Person nicht anmelden.');
+      if(!/^\d{1,8}$/.test(pn))return err('Die Personalnummer darf nur aus Ziffern bestehen.');
+      const h=await pnHash(pn);const dup=USERS.find(u=>u.pnh===h);
+      if(dup)return err(`Die Personalnummer ${pn} ist bereits ${dup.name} zugeordnet.`);
+      const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Wird gespeichert …';}
+      try{await rpc('fz_user_save',{p_code:S.adminCode,p_pnh:h,p_name:name,p_dept:d.dept,p_role:'ma'});}
+      catch(x){console.warn(x);if(btn){btn.disabled=false;btn.textContent='Hinzufügen';}return err('Speichern fehlgeschlagen – bitte Verbindung prüfen und nochmals versuchen.');}
+      addDbUser({pnh:h,name,dept:d.dept,role:'ma'});S.modal=null;toast(`${name} hinzugefügt – Anmeldung mit Personalnummer ${pn}`);
+    })();
   }
 });
 
@@ -2145,6 +2156,16 @@ function dbVStatus(v){
   rpc('fz_set_vstatus',{p_code:S.adminCode,p_veh:v.id,p_status:v.status}).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
 }
 Object.assign(A,{areload:()=>{toast('Wird aktualisiert …');loadAdmin();}});
+
+/* Mitarbeitende, die in der Verwaltung erfasst wurden (gemeinsame Datenbank) */
+function addDbUser(x){
+  const ex=USERS.find(u=>u.pnh===x.pnh);
+  if(ex){ex.name=x.name;ex.first=x.name.split(' ')[0];ex.dept=x.dept||ex.dept;ex.role=x.role||ex.role;return ex;}
+  const p=x.name.split(' ');const u={id:'d'+x.pnh.slice(0,10),name:x.name,first:p[0],initials:(p[0][0]+(p[p.length-1][0]||'')).toUpperCase(),dept:x.dept||null,role:x.role||'ma',pnh:x.pnh,db:true};
+  const k=USERS.findIndex(y=>y.role==='admin'&&!y.pnh);if(k>=0)USERS.splice(k,0,u);else USERS.push(u);return u;
+}
+async function loadDbUsers(){try{const l=await rpc('fz_users');(l||[]).forEach(addDbUser);S.usersLoaded=true;if(S.account==='admin'&&S.aView==='users')render();}catch(e){console.warn(e);}}
+loadDbUsers();
 
 })();
 </script>
