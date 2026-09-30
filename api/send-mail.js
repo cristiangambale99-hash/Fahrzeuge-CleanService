@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/send-mail
-// Versendet die E-Mails der Fahrzeug-App (Tankprotokolle, Fahrzeugmeldungen, Übernahmen/Abgaben) über Resend,
+// Versendet die E-Mails der Fahrzeug-App (Tankprotokolle, Fahrzeugmeldungen, Übernahmen/Abgaben, Abschleppungen) über Resend,
 // inklusive PDF-Anhang auf Logopapier.
 //
 // Environment Variables in Vercel (Project → Settings → Environment Variables):
@@ -10,10 +10,13 @@
 
 const ERLAUBT = [
   'c08d33f1.clean-service.ch@emea.teams.ms', // Teams-Kanal Tankprotokolle
-  '04fbbc5a.clean-service.ch@emea.teams.ms', // Teams-Kanal Fahrzeugmeldungen
+  '04fbbc5a.clean-service.ch@emea.teams.ms', // Teams-Kanal Infrastruktur (Fahrzeugmeldungen, Abschleppungen)
   'info@oerlike.ch',                         // Carrosserie
   'info@fegolaautomobile.ch',                // Garage Fegola Automobile
-  '1b6e08b6.clean-service.ch@emea.teams.ms'  // Teams-Kanal Übernahmen/Abgaben
+  '1b6e08b6.clean-service.ch@emea.teams.ms', // Teams-Kanal Übernahmen/Abgaben
+  'buero@garage-gerstl.ch',                  // Garage Gerstl AG (Abschleppungen)
+  'info.il@haeusermann.com',                 // Häusermann Automobile AG (Abschleppungen)
+  'info@garagemoser.ch'                      // Garage Carrosserie Moser AG (Abschleppungen)
 ];
 
 module.exports = async (req, res) => {
