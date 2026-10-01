@@ -529,6 +529,10 @@ h1,h2,.q,.greet,.vmodel{font-family:var(--font-h)}
 .abs-status .ic{width:20px;height:20px}
 .abs-status.ok{background:#E8F5EE;color:#1F6B45}
 .abs-status.err{background:#FBEDEB;color:#B8433A;font-weight:500}
+.vdel{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}
+.danger-link{background:none;border:0;padding:4px 0;color:#B8433A;font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.modal .danger,button.danger{background:#B8433A;color:#fff;border:0;border-radius:8px;min-height:48px;font:inherit;font-weight:600;cursor:pointer;width:100%}
+.modal .danger:disabled{opacity:.6}
 </style>
 </head>
 <body>
@@ -568,6 +572,7 @@ abs_de_lbl:'Auf Deutsch vorlesen',abs_tr_lbl:'Übersetzung',abs_say_h:'Lies den 
 abs_after:'Während du auf den Abschleppdienst wartest',abs_after_s:'Nutze die Wartezeit und erfasse eine Fahrzeugmeldung. So weiss die Verwaltung sofort Bescheid.',
 abs_rep_t:'Abschleppdienst bestellt?',abs_rep_h:'Dann melde es hier. Die Verwaltung wird informiert und die {garage} erhält eine Mail, dass das Fahrzeug zu ihr gebracht wird.',abs_note_l:'Was ist passiert? (optional)',abs_note_ph:'z. B. Motor stellt ab, springt nicht mehr an',abs_tel_l:'Deine Handynummer für Rückfragen (optional)',abs_rep_btn:'Abschleppung melden',d_abs:'Abschleppung gemeldet',nAbs:'Die Verwaltung und die {garage} wurden per E-Mail informiert.',abs_ev:'Abschleppung',
 abs_st_wait:'Die Verwaltung und die {garage} werden automatisch informiert …',abs_st_ok:'Die Verwaltung und die {garage} wurden automatisch informiert.',abs_st_err:'Die automatische Info konnte nicht gesendet werden. Ruf bitte die Verwaltung an: 0844 355 355.',
+abs_after_s2:'Erfasse jetzt die Fahrzeugmeldung (was ist passiert, Fotos). Erst damit werden die Verwaltung und die {garage} informiert, dass das Fahrzeug zu ihr gebracht wird.',nAbs:'Die Verwaltung und die {garage} wurden per E-Mail informiert, dass das Fahrzeug abgeschleppt wird.',
 dept_spez:'Spezialreinigung',dept_haus:'Hauswartung',dept_spring:'Springerteam',dept_admin:'Administration',dept_pfs:'Putzfrauenservice',dept_uh:'Unterhaltsreinigung',
 m_schaden:'Schaden',m_schaden_s:'Unfall, Kratzer, Delle, Glasschaden',m_service:'Service nötig',m_service_s:'Serviceanzeige oder Intervall erreicht',m_fehler:'Fehlermeldung am Fahrzeug',m_fehler_s:'Warnleuchte oder Meldung im Cockpit',m_pneu:'Pneuwechsel nötig',m_pneu_s:'Saisonwechsel oder Pneu beschädigt',m_bremsen:'Bremsen fällig',m_bremsen_s:'Geräusche oder schwache Bremswirkung',
 u_definitiv:'Definitive Übernahme',u_definitiv_s:'Das Fahrzeug wird dir fest zugeteilt',u_temporaer:'Temporäre Nutzung',u_temporaer_s:'Für einen Einsatz oder einige Tage',u_rueckgabe:'Abgabe',u_rueckgabe_s:'Du gibst das Fahrzeug ab',
@@ -620,6 +625,7 @@ abs_de_lbl:'Read out in German',abs_tr_lbl:'Translation',abs_say_h:'Read the Ger
 abs_after:'While you wait for the tow truck',abs_after_s:'Use the waiting time to record a vehicle report. That way the office knows right away.',
 abs_rep_t:'Tow truck ordered?',abs_rep_h:'Then report it here. The office is informed and {garage} receives an e-mail that the vehicle is being brought to them.',abs_note_l:'What happened? (optional)',abs_note_ph:'e.g. engine stalls and will not start',abs_tel_l:'Your mobile number for questions (optional)',abs_rep_btn:'Report towing',d_abs:'Towing reported',nAbs:'The office and {garage} have been informed by e-mail.',abs_ev:'Towing',
 abs_st_wait:'The office and {garage} are being informed automatically …',abs_st_ok:'The office and {garage} have been informed automatically.',abs_st_err:'The automatic notice could not be sent. Please call the office: 0844 355 355.',
+abs_after_s2:'Now record the vehicle report (what happened, photos). Only then are the office and {garage} informed that the vehicle is being brought to them.',nAbs:'The office and {garage} have been informed by e-mail that the vehicle is being towed.',
 dept_spez:'Special cleaning',dept_haus:'Caretaking',dept_spring:'Relief team',dept_admin:'Administration',dept_pfs:'Home cleaning service',dept_uh:'Maintenance cleaning',
 m_schaden:'Damage',m_schaden_s:'Accident, scratch, dent, glass damage',m_service:'Service due',m_service_s:'Service indicator or interval reached',m_fehler:'Warning on the vehicle',m_fehler_s:'Warning light or message on the dashboard',m_pneu:'Tyre change due',m_pneu_s:'Seasonal change or damaged tyre',m_bremsen:'Brakes due',m_bremsen_s:'Noises or weak braking',
 u_definitiv:'Permanent takeover',u_definitiv_s:'The vehicle is assigned to you permanently',u_temporaer:'Temporary use',u_temporaer_s:'For one job or a few days',u_rueckgabe:'Return',u_rueckgabe_s:'You hand the vehicle back',
@@ -672,6 +678,7 @@ abs_de_lbl:'Leer en alemán',abs_tr_lbl:'Traducción',abs_say_h:'Lee en voz alta
 abs_after:'Mientras esperas a la grúa',abs_after_s:'Aprovecha la espera para registrar un aviso del vehículo. Así la administración lo sabe enseguida.',
 abs_rep_t:'¿Ya has pedido la grúa?',abs_rep_h:'Entonces avísalo aquí. Se informa a la administración y {garage} recibe un e-mail de que el vehículo se lleva allí.',abs_note_l:'¿Qué ha pasado? (opcional)',abs_note_ph:'p. ej. el motor se para y no arranca',abs_tel_l:'Tu móvil para consultas (opcional)',abs_rep_btn:'Avisar del remolque',d_abs:'Remolque avisado',nAbs:'La administración y {garage} han sido informados por e-mail.',abs_ev:'Remolque',
 abs_st_wait:'Se está informando automáticamente a la administración y a {garage} …',abs_st_ok:'La administración y {garage} han sido informados automáticamente.',abs_st_err:'No se pudo enviar el aviso automático. Llama a la administración: 0844 355 355.',
+abs_after_s2:'Registra ahora el aviso del vehículo (qué ha pasado, fotos). Solo entonces se informa a la administración y a {garage} de que el vehículo se lleva allí.',nAbs:'La administración y {garage} han sido informados por e-mail de que el vehículo será remolcado.',
 dept_spez:'Limpieza especial',dept_haus:'Conserjería',dept_spring:'Equipo volante',dept_admin:'Administración',dept_pfs:'Servicio de limpieza doméstica',dept_uh:'Limpieza de mantenimiento',
 m_schaden:'Daño',m_schaden_s:'Accidente, rayón, abolladura, daño en cristal',m_service:'Servicio necesario',m_service_s:'Indicador de servicio o intervalo alcanzado',m_fehler:'Aviso en el vehículo',m_fehler_s:'Testigo o mensaje en el cuadro de mandos',m_pneu:'Cambio de neumáticos',m_pneu_s:'Cambio de temporada o neumático dañado',m_bremsen:'Revisar frenos',m_bremsen_s:'Ruidos o frenada débil',
 u_definitiv:'Asignación definitiva',u_definitiv_s:'El vehículo se te asigna de forma fija',u_temporaer:'Uso temporal',u_temporaer_s:'Para un servicio o unos días',u_rueckgabe:'Devolución',u_rueckgabe_s:'Entregas el vehículo',
@@ -724,6 +731,7 @@ abs_de_lbl:'Ler em alemão',abs_tr_lbl:'Tradução',abs_say_h:'Lê em voz alta o
 abs_after:'Enquanto esperas pelo reboque',abs_after_s:'Aproveita a espera para registar uma comunicação do veículo. Assim a administração fica logo a saber.',
 abs_rep_t:'Já pediste o reboque?',abs_rep_h:'Então comunica aqui. A administração é informada e a {garage} recebe um e-mail a dizer que o veículo vai para lá.',abs_note_l:'O que aconteceu? (opcional)',abs_note_ph:'p. ex. o motor vai abaixo e não pega',abs_tel_l:'O teu telemóvel para perguntas (opcional)',abs_rep_btn:'Comunicar reboque',d_abs:'Reboque comunicado',nAbs:'A administração e a {garage} foram informadas por e-mail.',abs_ev:'Reboque',
 abs_st_wait:'A administração e a {garage} estão a ser informadas automaticamente …',abs_st_ok:'A administração e a {garage} foram informadas automaticamente.',abs_st_err:'Não foi possível enviar o aviso automático. Liga para a administração: 0844 355 355.',
+abs_after_s2:'Regista agora a comunicação do veículo (o que aconteceu, fotos). Só então a administração e a {garage} são informadas de que o veículo vai para lá.',nAbs:'A administração e a {garage} foram informadas por e-mail de que o veículo vai ser rebocado.',
 dept_spez:'Limpeza especial',dept_haus:'Zeladoria',dept_spring:'Equipa volante',dept_admin:'Administração',dept_pfs:'Serviço de limpeza doméstica',dept_uh:'Limpeza de manutenção',
 m_schaden:'Dano',m_schaden_s:'Acidente, risco, amolgadela, vidro danificado',m_service:'Revisão necessária',m_service_s:'Indicador de revisão ou intervalo atingido',m_fehler:'Aviso no veículo',m_fehler_s:'Luz de aviso ou mensagem no painel',m_pneu:'Troca de pneus necessária',m_pneu_s:'Troca de estação ou pneu danificado',m_bremsen:'Travões a rever',m_bremsen_s:'Ruídos ou travagem fraca',
 u_definitiv:'Receção definitiva',u_definitiv_s:'O veículo fica atribuído a ti',u_temporaer:'Uso temporário',u_temporaer_s:'Para um serviço ou alguns dias',u_rueckgabe:'Devolução',u_rueckgabe_s:'Entregas o veículo',
@@ -776,6 +784,7 @@ abs_de_lbl:'Leggi in tedesco',abs_tr_lbl:'Traduzione',abs_say_h:'Leggi ad alta v
 abs_after:'Mentre aspetti il carro attrezzi',abs_after_s:'Approfitta dell’attesa per registrare una segnalazione del veicolo. Così l’amministrazione lo sa subito.',
 abs_rep_t:'Hai chiamato il carro attrezzi?',abs_rep_h:'Allora segnalalo qui. L’amministrazione viene informata e {garage} riceve una e-mail che il veicolo verrà portato da loro.',abs_note_l:'Cosa è successo? (facoltativo)',abs_note_ph:'p. es. il motore si spegne e non riparte',abs_tel_l:'Il tuo cellulare per domande (facoltativo)',abs_rep_btn:'Segnala il traino',d_abs:'Traino segnalato',nAbs:'L’amministrazione e {garage} sono state informate per e-mail.',abs_ev:'Traino',
 abs_st_wait:'L’amministrazione e {garage} vengono informate automaticamente …',abs_st_ok:'L’amministrazione e {garage} sono state informate automaticamente.',abs_st_err:'Non è stato possibile inviare l’avviso automatico. Chiama l’amministrazione: 0844 355 355.',
+abs_after_s2:'Registra ora la segnalazione del veicolo (cosa è successo, foto). Solo così l’amministrazione e {garage} vengono informate che il veicolo verrà portato da loro.',nAbs:'L’amministrazione e {garage} sono state informate per e-mail che il veicolo verrà trainato.',
 dept_spez:'Pulizie speciali',dept_haus:'Custodia immobili',dept_spring:'Squadra jolly',dept_admin:'Amministrazione',dept_pfs:'Servizio pulizie domestiche',dept_uh:'Pulizia di manutenzione',
 m_schaden:'Danno',m_schaden_s:'Incidente, graffio, ammaccatura, vetro danneggiato',m_service:'Servizio necessario',m_service_s:'Spia di servizio o intervallo raggiunto',m_fehler:'Avviso sul veicolo',m_fehler_s:'Spia o messaggio sul cruscotto',m_pneu:'Cambio gomme necessario',m_pneu_s:'Cambio stagionale o gomma danneggiata',m_bremsen:'Freni da controllare',m_bremsen_s:'Rumori o frenata debole',
 u_definitiv:'Presa in consegna definitiva',u_definitiv_s:'Il veicolo ti viene assegnato in modo fisso',u_temporaer:'Uso temporaneo',u_temporaer_s:'Per un intervento o qualche giorno',u_rueckgabe:'Restituzione',u_rueckgabe_s:'Riconsegni il veicolo',
@@ -945,7 +954,8 @@ S.settings=[
   {ev:'Tankvorgang',prio:null,act:'Speichern, keine Alarmmeldung',ch:'Keine',to:''}
 ];
 S.history.forEach(h=>{const v=VEH.find(x=>x.id===h.veh);if(v&&h.km!=null)v.lastKm=Math.max(v.lastKm||0,h.km);});
-const veh=(id)=>VEH.find(v=>v.id===(id||S.vehicleId));
+const VEH_GONE=[];
+const veh=(id)=>{const k=id||S.vehicleId;return VEH.find(v=>v.id===k)||VEH_GONE.find(v=>v.id===k);};
 const P=g=>{const p=S.data.photos;return p[g]||(p[g]=[]);};
 const internalRole=()=>false;
 const photosTxt=n=>n===1?t('onePhoto'):t('nPhotos',{n});
@@ -1270,25 +1280,6 @@ function absLocate(){
     try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=de&lat=${g.lat}&lon=${g.lon}`);const j=await r.json();const a=j.address||{};const s=[[a.road||a.pedestrian||a.footway,a.house_number].filter(Boolean).join(' '),[a.postcode,a.city||a.town||a.village||a.municipality].filter(Boolean).join(' ')].filter(Boolean).join(', ');if(s&&S.absGps===g){g.addr=s;if(S.screen==='abschlepp')render();}}catch(e){}},
     ()=>{S.absGps={err:true};if(S.screen==='abschlepp')render();},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 }
-async function absAutoSend(vid){
-  const v=veh(vid),a=absInfo(v);if(!a)return;
-  const key=vid+'|'+S.absOpen;if(S.absSent&&S.absSent.key===key)return;
-  const recent=S.history.find(h=>h.kind==='abschlepp'&&h.veh===vid&&h.who===S.user.name&&Date.now()-new Date(h.at)<30*60000);
-  if(recent){S.absSent={key,state:'ok'};return;}
-  S.absSent={key,state:'sending'};
-  const t0=Date.now();while(Date.now()-t0<8000){const g=S.absGps;if(g&&(g.err||g.addr))break;await sleep(300);}
-  const g=S.absGps||{};
-  const rec={id:'',kind:'abschlepp',veh:v.id,who:S.user.name,at:new Date(),km:null,prio:'hoch',note:'',tel:'',
-    gps:g.lat!=null?{lat:g.lat,lon:g.lon,addr:g.addr||null}:null,provider:{name:a.contract?v.contract.label:'Pannendienst '+v.ins,tel:a.tel,contract:a.contract,contractLabel:v.contract?v.contract.label:null,contractUntil:v.contract?v.contract.until:null},
-    garage:a.garage,garageAddr:a.addr,garageMail:v.garageMail||null,photos:[],notice:{cls:'hoch',key:'nAbs'}};
-  const pnh=S.user.pnh;const id=await dbInsert(rec,pnh);
-  if(id){rec.id=id;}else{rec.id='FZ-LOKAL-'+Date.now().toString(36).toUpperCase();rec._unsynced=true;const q=pendLoad();q.push({rec:fullRec(rec),pnh});pendSave(q);}
-  S.history.unshift(rec);
-  await sendMails(rec);
-  if(!rec._unsynced&&rec.mails)rpc('fz_mails',{p_pnh:pnh,p_id:rec.id,p_mails:rec.mails}).catch(()=>{});
-  const ok=(rec.mails||[]).length&&rec.mails.every(x=>x.status==='gesendet');
-  if(S.absSent&&S.absSent.key===key){S.absSent.state=ok?'ok':'err';if(S.screen==='abschlepp')render();}
-}
 function vAbschlepp(){
   const v=veh();if(!v){S.screen='home';return vHome();}
   const a=absInfo(v);const g=S.absGps||{};
@@ -1299,11 +1290,11 @@ function vAbschlepp(){
   const locTxt=g.wait?t('abs_loc_wait'):g.err?t('abs_loc_no'):g.addr?esc(g.addr):g.lat!=null?`${g.lat.toFixed(5)}, ${g.lon.toFixed(5)}`:t('abs_loc_wait');
   const cnote=v.contract?`<p class="abs-note ${a.contract?'on':''}">${a.contract?t('abs_contract',{label:esc(v.contract.label),date:new Date(v.contract.until).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'}),km:fmtKm(v.contract.km)}):t('abs_contract_end',{label:esc(v.contract.label)})}</p>`:'';
   const st=S.absSent||{};const stLine=`<p class="abs-status ${st.state||'sending'}">${ic(st.state==='ok'?'check':st.state==='err'?'alert':'clock')}<span>${st.state==='ok'?t('abs_st_ok',{garage:esc(a.garage)}):st.state==='err'?t('abs_st_err'):t('abs_st_wait',{garage:esc(a.garage)})}</span></p>`;
-  return `${topbar(true)}<main class="home abs">${head}${stLine}${safety}
+  return `${topbar(true)}<main class="home abs">${head}${safety}
     <section class="abs-card"><h2>${t('abs_call')}</h2>${cnote}<a class="abs-tel" href="${telHref}">${ic('phone')}<span><small>${esc(a.who)}</small><b>${esc(a.tel)}</b></span></a></section>
     <section class="abs-card"><h2>${t('abs_to')}</h2><p class="abs-dest"><b>${esc(a.garage)}</b><span>${esc(a.addr)}</span></p><a class="linkbtn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.garage+', '+a.addr)}">${ic('pin')}${t('abs_map')}</a></section>
     <section class="abs-card"><h2>${t('abs_say')}</h2><p class="hint">${t('abs_say_h')}</p><p class="abs-lbl">${t('abs_de_lbl')}</p><blockquote class="abs-script" lang="de" id="absscript">${esc(absScript(v,a,'de'))}</blockquote>${S.lang!=='de'?`<p class="abs-lbl">${t('abs_tr_lbl')}</p><blockquote class="abs-script tr" lang="${S.lang}">${esc(absScript(v,a,S.lang))}</blockquote>`:''}<p class="abs-loc">${ic('pin')}<span>${t('abs_loc')}: ${locTxt}</span></p><button class="secondary" data-act="abscopy">${ic('copy')}${t('abs_copy')}</button></section>
-    <section class="abs-card"><h2>${t('abs_after')}</h2><p class="hint">${t('abs_after_s')}</p><button class="primary" data-act="absmeld">${ic('alert')}${t('abs_meld')}</button></section>
+    <section class="abs-card"><h2>${t('abs_after')}</h2><p class="hint">${t('abs_after_s2',{garage:esc(a.garage)})}</p><button class="primary" data-act="absmeld">${ic('alert')}${t('abs_meld')}</button></section>
   </main>`;
 }
 function vPick(){
@@ -1347,7 +1338,7 @@ function vDone(){
   const n=r.notice;
   const title=r.kind==='abschlepp'?t('d_abs'):r.kind==='tanken'?t('d_tanken'):r.kind==='meldung'?t('d_meldung'):(r.sub==='rueckgabe'?t('d_rueck'):t('d_ueb'));
   return `<main class="done"><div class="done-ic">${ic('check')}</div><h1>${title}</h1><p>${t('thanks',{name:esc(S.user.first||S.user.name.split(' ')[0])})}</p>
-    <div class="notice n-${n.cls}">${ic(n.cls==='normal'?'info':'bell')}<span>${t(n.key,{garage:esc(r.garage||'')})}</span></div>
+    <div class="notice n-${n.cls}">${ic(n.cls==='normal'?'info':'bell')}<span>${t(n.key,{garage:esc((r.tow&&r.tow.garage)||r.garage||'')})}</span></div>
     ${r.mails&&r.mails.length?`<div class="notice n-normal">${ic('info')}<span>${t('mail_to',{list:r.mails.map(q=>q.toLabel).join(', ')})}</span></div>`:''}
     <dl class="sum receipt"><div><dt>${t('recId')}</dt><dd class="num">${r.id}</dd></div><div><dt>${t('vehicle')}</dt><dd>${esc(v.model)} · ${t('nrLabel')} ${v.nr} · ${v.plate}</dd></div><div><dt>${t('time')}</dt><dd>${fmtDT(r.at)}</dd></div><div><dt>${t('recordedBy')}</dt><dd>${esc(r.who)}</dd></div></dl>
     <div class="actions">${r.kind==='abschlepp'?`<button class="primary" data-act="absmeld">${ic('alert')}${t('abs_meld')}</button>`:''}<button class="secondary" data-act="pdf" data-id="${r.id}">${t('pdf_btn')}</button><button class="primary" data-act="home">${t('toHome')}</button>${internalRole()?`<button class="secondary" data-act="tohist" data-id="${r.veh}">${t('toHistory')}</button>`:''}</div></main>`;
@@ -1450,12 +1441,14 @@ function submit(){
     }else if(S.flow==='meldung'){
       Object.assign(rec,{sub:d.mtype,unfall:d.unfall==='ja',note:d.mtype==='schaden'?dmgText(d.dmg,k=>I18N.de[k]):d.mtype==='fehler'?fltText(d.flt,k=>I18N.de[k]):(d.bemerkung||'').trim(),dmg:d.mtype==='schaden'?d.dmg:null,flt:d.mtype==='fehler'?d.flt:null,gps:d.gps&&d.gps.lat!=null?{lat:d.gps.lat,lon:d.gps.lon,acc:d.gps.acc,at:d.gps.at,addr:d.gps.addr||null}:null,ort:d.mtype==='schaden'?(d.gps&&d.gps.addr)||(d.ort||null):null,third:d.unfall==='ja'?{name:d.u_name,tel:d.u_tel,kz:d.u_kz,pol:d.u_pol,prot:d.u_prot,file:d.u_prot==='ja'?d.u_file:null}:null,photos:[...P('tacho'),...P('bilder'),...P('bilderOpt'),...P('bilderPneu')],status:'offen',assignee:null,log:[{at:new Date(),who:S.user.name,text:'Meldung erfasst (Mitarbeiter-App)'}]});
       rec.prio=d.unfall==='ja'?'sehrhoch':MTYPES[d.mtype].prio;
+      if(d.tow){rec.tow=d.tow;if(rec.prio!=='sehrhoch')rec.prio='hoch';}
       notice=rec.prio==='sehrhoch'?{cls:'alarm',key:'nAlarm'}:rec.prio==='hoch'?{cls:'hoch',key:'nHoch'}:{cls:'normal',key:'nNormal'};
     }else{
       const missing=ZUB.filter(k=>d['z_'+k]==='nein');
       Object.assign(rec,{sub:d.utype,key:null,nPhotos:SLOTS.flatMap(s=>P(s.k)).length,missing,notClean:d.zustand==='nein',photos:[...SLOTS.flatMap(s=>P(s.k)),...P('zustand')],note:(d.zustandTxt||'').trim(),zub:Object.fromEntries(ZUB.map(k=>[k,d['z_'+k]])),reglement:d.utype==='rueckgabe'?null:!!d.reglement,keyPhotos:P('keyphoto').slice(),slotPhotos:Object.fromEntries([...SLOTS.map(s=>[s.k,P(s.k).slice()]),['zustand',P('zustand').slice()]].filter(x=>x[1].length))});
       notice=missing.length||rec.notClean?{cls:'hoch',key:'nUebIssue'}:{cls:'normal',key:'nUebOk'};
     }
+    if(rec.tow)notice={cls:notice.cls==='alarm'?'alarm':'hoch',key:'nAbs'};
     rec.notice=notice;
     const pnh=S.user.pnh;
     const id=await dbInsert(rec,pnh);
@@ -1470,7 +1463,9 @@ function submit(){
 const A={
   start:b=>{S.vehicleId=null;S.afterPick=b.dataset.flow;S.screen='pick';S.q='';render();top0();},
   abscopy:async()=>{const v=veh(),a=absInfo(v);const s=absScript(v,a,'de');try{await navigator.clipboard.writeText(s);toast(t('abs_copied'));}catch(e){const el=document.getElementById('absscript');if(el){const rg=document.createRange();rg.selectNodeContents(el);const sel=getSelection();sel.removeAllRanges();sel.addRange(rg);}}},
-  absmeld:()=>{startFlow('meldung');render();top0();},
+  absmeld:()=>{const v=veh(),a=absInfo(v);const g=S.absGps||{};
+    const tow=a?{garage:a.garage,garageAddr:a.addr,garageMail:v.garageMail||null,provider:{name:a.contract?v.contract.label:'Pannendienst '+v.ins,tel:a.tel,contract:a.contract,contractLabel:v.contract?v.contract.label:null,contractUntil:v.contract?v.contract.until:null},gps:g.lat!=null?{lat:g.lat,lon:g.lon,addr:g.addr||null}:null}:null;
+    startFlow('meldung');if(tow){S.data.tow=tow;if(tow.gps&&!S.data.gps)S.data.gps=Object.assign({acc:null,at:Date.now()},tow.gps);}render();top0();},
 
   go:b=>{S.screen=b.dataset.to;S.q='';render();top0();},
   home:()=>{S.screen='home';S.flow=null;S.afterPick=null;S.submitting=false;render();top0();},
@@ -1479,7 +1474,7 @@ const A={
   jump:b=>{S.idx=+b.dataset.i;render(true);top0();},
   pick:b=>{const f=b.dataset.field;S.data[f]=b.dataset.val;const at=S.idx;render();if(b.dataset.auto)setTimeout(()=>{if(S.screen==='flow'&&S.idx===at)next();},200);},
   toggle:b=>{const f=b.dataset.field;S.data[f]=!S.data[f];render();},
-  selv:b=>{S.vehicleId=b.dataset.id;S.changedVeh=true;const f=S.afterPick;S.afterPick=null;const v=veh();if(f==='abschlepp'){S.screen='abschlepp';S.absGps=null;S.absOpen=Date.now();absLocate();render();top0();absAutoSend(v.id);return;}if(f&&!(f==='tanken'&&isTrailer(v))){startFlow(f);return;}S.screen='home';render();top0();},
+  selv:b=>{S.vehicleId=b.dataset.id;S.changedVeh=true;const f=S.afterPick;S.afterPick=null;const v=veh();if(f==='abschlepp'){S.screen='abschlepp';S.absGps=null;S.absOpen=Date.now();absLocate();render();top0();return;}if(f&&!(f==='tanken'&&isTrailer(v))){startFlow(f);return;}S.screen='home';render();top0();},
   sheet:b=>{S.sheet=b.dataset.s;render();},
   closesheet:()=>{S.sheet=null;render();},
   setlang:b=>{S.lang=b.dataset.lang;try{localStorage.setItem('cs-fz-lang',S.lang);}catch(e){}S.sheet=null;render();},
@@ -1586,7 +1581,7 @@ function aMeldungen(){
 function aDrawer(){
   const h=S.history.find(x=>x.id===S.aSel);if(!h)return '';const v=veh(h.veh);
   const rows=[['Gemeldet von',esc(h.who)],['Zeitpunkt',dS(h.at)],['KM-Stand',h.km!=null?fmtKm(h.km)+' km':'–']];
-  if(h.gps)rows.push(['Ortsstempel',`${h.gps.addr?esc(h.gps.addr)+'<br>':''}<span class="num">${h.gps.lat.toFixed(5)}, ${h.gps.lon.toFixed(5)}</span> · ±${h.gps.acc} m · ${dS(new Date(h.gps.at))}<br><a href="https://www.google.com/maps?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener">Auf Karte ansehen</a>`]);else if(h.ort)rows.push(['Ort',esc(h.ort)]);
+  if(h.gps)rows.push(['Ortsstempel',`${h.gps.addr?esc(h.gps.addr)+'<br>':''}<span class="num">${h.gps.lat.toFixed(5)}, ${h.gps.lon.toFixed(5)}</span>${h.gps.acc!=null?` · ±${h.gps.acc} m`:''} · ${dS(new Date(h.gps.at))}<br><a href="https://www.google.com/maps?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener">Auf Karte ansehen</a>`]);else if(h.ort)rows.push(['Ort',esc(h.ort)]);
   if(h.dmg){rows.push(['Schaden',esc((h.dmg.types||[]).filter(k=>k!=='andere').map(k=>deL('d_'+k)).concat((h.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '))]);rows.push(['Stelle',esc((h.dmg.where||[]).map(k=>deL('p_'+k)).join(', '))]);if(h.dmg.text)rows.push(['Beschreibung',esc(h.dmg.text)]);}
   else if(h.flt){rows.push(['Anzeige',esc((h.flt.types||[]).filter(k=>k!=='andere').map(k=>deL('f_'+k)).concat((h.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '))]);if(h.flt.text)rows.push(['Beschreibung',esc(h.flt.text)]);}
   else rows.push([h.sub==='fehler'?'Anzeige':h.sub==='schaden'?'Beschreibung':'Bemerkung',esc(h.note||'Ohne Bemerkung')]);
@@ -1643,7 +1638,8 @@ function aFahrzeug(){
       <label class="field" for="e-status"><span>Status</span><select id="e-status" name="status">${Object.entries(VST_L).map(([k,l])=>`<option value="${k}" ${v.status===k?'selected':''}>${l}</option>`).join('')}</select></label>
       <p class="err" id="ferr" role="alert" hidden></p>
       <button class="primary" type="submit">Änderungen speichern</button>
-    </form></section>
+    </form>
+    <div class="vdel"><button class="danger-link" data-act="modal" data-m="delveh">Fahrzeug entfernen</button></div></section>
   <section class="apanel"><div class="apanel-h"><h2>Fahrzeughistorie</h2><span class="muted">${hist.length} Vorgänge</span></div>${hist.length?`<ul class="evs flat">${hist.map(h=>evItem(h,false).replace('<div class="ev-h">',`<div class="ev-h">${h.kind==='meldung'?stPill(h.status):''}`)).join('')}</ul>`:'<p class="empty pad">Noch keine Vorgänge für dieses Fahrzeug.</p>'}</section></div>`;
 }
 
@@ -1657,7 +1653,7 @@ function aTanken(){
   let list=base.slice().sort((a,b)=>b.at-a.at);const all=list;if(S.tdept!=='all')list=list.filter(h=>h.dept===S.tdept);
   const tot=list.reduce((a,h)=>a+h.chf,0),L=list.filter(h=>h.fuel!=='strom').reduce((a,h)=>a+h.liter,0),K=list.filter(h=>h.fuel==='strom').reduce((a,h)=>a+h.liter,0);
   const byDept=DEPTS.map(d=>{const x=all.filter(h=>h.dept===d);return {d,n:x.length,c:x.reduce((a,h)=>a+h.chf,0)};});const allC=all.reduce((a,h)=>a+h.chf,0)||1;
-  const byVeh=VEH.map(v=>{const x=inMonth.filter(h=>h.veh===v.id);return {v,n:x.length,c:x.reduce((a,h)=>a+h.chf,0)};}).filter(x=>x.n).sort((a,b)=>b.c-a.c);const vehC=byVeh.reduce((a,x)=>a+x.c,0)||1;
+  const byVeh=[...VEH,...VEH_GONE].map(v=>{const x=inMonth.filter(h=>h.veh===v.id);return {v,n:x.length,c:x.reduce((a,h)=>a+h.chf,0)};}).filter(x=>x.n).sort((a,b)=>b.c-a.c);const vehC=byVeh.reduce((a,x)=>a+x.c,0)||1;
   const vehOpts=VEH.filter(v=>!isTrailer(v));const active=tm!==0||tv!=='all'||S.tdept!=='all';
   const period=tm==='all'?'alle Monate':mName(mRange(tm)[0]);const vsel=tv!=='all'?veh(tv):null;
   return aHead('Tankvorgänge','Tank- und Ladevorgänge mit Quittung, zur Kostenverteilung auf Abteilungen und Fahrzeuge.')+
@@ -1720,6 +1716,12 @@ function aModal(){
   const m=S.modal;
   if(m.t==='mail')return mailModal();
   if(m.t==='img'){const h=S.history.find(x=>x.id===m.id);return `<div class="scrim top" data-act="mclosemodal"></div><div class="lightbox" role="dialog" aria-modal="true" aria-label="Foto"><img src="${m.src||h.photos[m.i]}" alt="Foto"><button class="iconbtn" data-act="mclosemodal" aria-label="Schliessen">${ic('x')}</button></div>`;}
+  if(m.t==='delveh'){const v=veh(S.aVeh);const as=assignment(v.id);return `<div class="scrim top" data-act="mclosemodal"></div><div class="modal" role="dialog" aria-modal="true"><h2>Fahrzeug entfernen?</h2>
+    <p><b>Nr. ${v.nr} · ${esc(v.model)} · ${esc(v.plate)}</b></p>
+    <p class="hint">Das Fahrzeug erscheint danach nicht mehr in der Mitarbeiter-App und nicht mehr in der Fahrzeugliste. Alle bisherigen Vorgänge, PDFs und Tankkosten bleiben erhalten.</p>
+    ${as?`<p class="warnbox">Achtung: Das Fahrzeug ist aktuell ${esc(as.who)} zugeteilt.</p>`:''}
+    <p class="err" id="ferr" role="alert" hidden></p>
+    <div class="frow"><button type="button" class="secondary" data-act="mclosemodal">Abbrechen</button><button type="button" class="danger" data-act="vremove" data-id="${v.id}">Entfernen</button></div></div>`;}
   const body=m.t==='addveh'?`<h2>Fahrzeug hinzufügen</h2><form class="form" data-form="addveh" novalidate>
       <label class="field" for="n-model"><span>Bezeichnung</span><input id="n-model" name="model" placeholder="z. B. Renault Trafic" required></label>
       <div class="frow"><label class="field" for="n-nr"><span>Nr.</span><input id="n-nr" name="nr" inputmode="numeric" placeholder="72" required></label><label class="field" for="n-plate"><span>Kennzeichen</span><input id="n-plate" name="plate" placeholder="ZH 123 456" required></label></div>
@@ -1750,6 +1752,10 @@ Object.assign(A,{
   mnote:()=>{const el=document.getElementById('m-note');const x=(el.value||'').trim();if(!x){el.focus();return;}mlog(curM(),'Notiz: '+x);dbPatch(curM());toast('Notiz hinzugefügt');},
   vshop:b=>{const v=veh(b.dataset.id);v.status='werkstatt';dbVStatus(v);mlog(curM(),'Fahrzeug auf «In Werkstatt» gesetzt');dbPatch(curM());toast('Fahrzeug steht jetzt auf «In Werkstatt»');},
   vactive:b=>{const v=veh(b.dataset.id);v.status='aktiv';dbVStatus(v);mlog(curM(),'Fahrzeug wieder auf «Aktiv» gesetzt');dbPatch(curM());toast('Fahrzeug ist wieder aktiv');},
+  vremove:async b=>{const v=veh(b.dataset.id);if(!v)return;b.disabled=true;b.textContent='Wird entfernt …';
+    try{await rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:v.id,p_data:vehData(v),p_removed:true});}
+    catch(x){console.warn(x);b.disabled=false;b.textContent='Entfernen';const el=document.getElementById('ferr');if(el){el.textContent='Entfernen fehlgeschlagen – bitte Verbindung prüfen.';el.hidden=false;}return;}
+    removeVeh(v.id);S.modal=null;S.aView='fahrzeuge';S.aVeh=null;toast(`Nr. ${v.nr} ${v.model} entfernt`);top0();},
   vopen:b=>{S.aVeh=b.dataset.id;S.aView='fahrzeug';render();top0();},
   modal:b=>{S.modal={t:b.dataset.m};render();const f=document.querySelector('.modal input');if(f)f.focus();},
   mclosemodal:()=>{S.modal=null;render();},
@@ -1790,8 +1796,9 @@ app.addEventListener('submit',e=>{
     const pn=d.plate.replace(/\s/g,'').toUpperCase();
     if(VEH.some(v=>v!==self&&v.plate.replace(/\s/g,'').toUpperCase()===pn))return err(`Das Kennzeichen ${d.plate} ist bereits erfasst.`);
     const data={model:d.model,nr:d.nr,plate:d.plate.toUpperCase(),kind:d.kind,fuel:d.kind==='anhaenger'?null:(d.fuel||null)};
-    if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);toast('Stammdaten gespeichert');}
-    else{VEH.push(Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data));VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}
+    if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:self.id,p_data:vehData(self),p_removed:false}).then(()=>toast('Stammdaten gespeichert')).catch(()=>toast('Speichern fehlgeschlagen – bitte Verbindung prüfen'));}
+    else{const nv=Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data);const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Wird gespeichert …';}
+      rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:nv.id,p_data:vehData(nv),p_removed:false}).then(()=>{VEH.push(nv);VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}).catch(x=>{console.warn(x);if(btn){btn.disabled=false;btn.textContent='Hinzufügen';}err('Speichern fehlgeschlagen – bitte Verbindung prüfen und nochmals versuchen.');});}
   }
   if(f.dataset.form==='adduser'){
     (async()=>{
@@ -1824,7 +1831,7 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
   const {PDFDocument,StandardFonts,rgb}=PDFLib;
   const doc=await PDFDocument.create();
   const v=veh(rec.veh);
-  const title=rec.kind==='abschlepp'?'Abschleppung':rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankvorgang'):rec.kind==='meldung'?'Fahrzeugmeldung – '+DE('m_'+rec.sub):(rec.sub==='rueckgabe'?'Abgabeprotokoll':'Übernahmeprotokoll');
+  const title=rec.kind==='abschlepp'?'Abschleppung':rec.kind==='meldung'&&rec.tow?'Fahrzeugmeldung mit Abschleppung – '+DE('m_'+rec.sub):rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankvorgang'):rec.kind==='meldung'?'Fahrzeugmeldung – '+DE('m_'+rec.sub):(rec.sub==='rueckgabe'?'Abgabeprotokoll':'Übernahmeprotokoll');
   doc.setTitle(`${title} ${rec.id}`);doc.setAuthor('Clean Service Scaramuzzo AG');doc.setCreator('Fahrzeug-App');doc.setProducer('Fahrzeug-App');doc.setCreationDate(new Date());
   const [bg]=await doc.embedPdf(b64u8(LETTERHEAD));
   const F=await doc.embedFont(StandardFonts.Helvetica),FB=await doc.embedFont(StandardFonts.HelveticaBold);
@@ -1882,12 +1889,13 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
   }else if(rec.kind==='meldung'){
     section('Meldung');
     kv('Art der Meldung',DE('m_'+rec.sub));kv('Priorität',rec.prio?DE('prio_'+rec.prio):null);kv('Gemeldet von',rec.who);kv('Zeitpunkt',deDT(rec.at));
-    if(rec.gps){kv('Ortsstempel',`${rec.gps.addr?rec.gps.addr+'\n':''}${rec.gps.lat.toFixed(5)}, ${rec.gps.lon.toFixed(5)} (Genauigkeit ca. ${rec.gps.acc} m)\n${deDT(new Date(rec.gps.at))}`);kv('Karte',`https://www.google.com/maps?q=${rec.gps.lat.toFixed(5)},${rec.gps.lon.toFixed(5)}`);}
+    if(rec.gps){kv('Ortsstempel',`${rec.gps.addr?rec.gps.addr+'\n':''}${rec.gps.lat.toFixed(5)}, ${rec.gps.lon.toFixed(5)} ${rec.gps.acc!=null?`(Genauigkeit ca. ${rec.gps.acc} m)`:''}\n${deDT(new Date(rec.gps.at))}`);kv('Karte',`https://www.google.com/maps?q=${rec.gps.lat.toFixed(5)},${rec.gps.lon.toFixed(5)}`);}
     else if(rec.ort)kv('Ort',rec.ort);
     if(rec.dmg){kv('Schaden',(rec.dmg.types||[]).filter(k=>k!=='andere').map(k=>DE('d_'+k)).concat((rec.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '));kv('Stelle am Fahrzeug',(rec.dmg.where||[]).map(k=>DE('p_'+k)).join(', '));if(rec.dmg.text)kv('Beschreibung',rec.dmg.text);}
     else if(rec.flt){kv('Anzeige',(rec.flt.types||[]).filter(k=>k!=='andere').map(k=>DE('f_'+k)).concat((rec.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '));if(rec.flt.text)kv('Beschreibung',rec.flt.text);}
     else kv(rec.sub==='fehler'?'Anzeige':rec.sub==='schaden'?'Beschreibung':'Bemerkung',rec.note||'Ohne Bemerkung');
     if(rec.sub==='schaden')kv('Unfall mit Drittperson',rec.unfall?'Ja':'Nein');
+    if(rec.tow){const tw=rec.tow,pv=tw.provider||{};section('Abschleppung');kv('Pannendienst angerufen',`${pv.name||'–'}, ${pv.tel||'–'}`);if(pv.contract)kv('Vertrag',`${pv.contractLabel}, gültig bis ${new Date(pv.contractUntil).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'})}`);kv('Abgeschleppt zu',`${tw.garage}\n${tw.garageAddr}`);if(!ext&&tw.garageMail)kv('Garage informiert per E-Mail',tw.garageMail);}
     if(rec.third&&!ext){section('Angaben zur Drittperson');kv('Name',rec.third.name);kv('Telefon',rec.third.tel);kv('Kennzeichen',rec.third.kz);kv('Polizei vor Ort',rec.third.pol==='ja'?'Ja':'Nein');kv('Unfallprotokoll',rec.third.prot==='ja'?('Ausgefüllt'+(rec.third.file?` – ${rec.third.file.type==='application/pdf'?'im Anhang':'siehe unten'} (${rec.third.file.name})`:'')):'Nicht ausgefüllt');}
     if(rec.photos&&rec.photos.length){section('Fotos',170);await photos(rec.photos.map(s=>({src:s})));}
     if(!ext&&rec.third&&rec.third.file&&rec.third.file.type.startsWith('image')){section('Unfallprotokoll',170);await photos([{src:rec.third.file.data,label:rec.third.file.name}]);}
@@ -1945,7 +1953,7 @@ const MAIL_TO={
   ueb:{addr:'1b6e08b6.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Übernahmen/Abgaben'}
 };
 const MAIL_RULES={tanken:[['tank','intern']],schaden:[['meld','intern'],['carrosserie','extern']],service:[['meld','intern'],['garage','extern']],fehler:[['meld','intern'],['garage','extern']],pneu:[['meld','intern']],bremsen:[['meld','intern'],['garage','extern']],uebernahme:[['ueb','intern']],abschlepp:[['meld','intern'],['werkstatt','extern']]};
-const rulesFor=rec=>rec.kind==='tanken'?MAIL_RULES.tanken:rec.kind==='meldung'?(MAIL_RULES[rec.sub]||[]):rec.kind==='uebernahme'?MAIL_RULES.uebernahme:rec.kind==='abschlepp'?MAIL_RULES.abschlepp.filter(x=>x[0]!=='werkstatt'||rec.garageMail):[];
+const rulesFor=rec=>rec.kind==='tanken'?MAIL_RULES.tanken:rec.kind==='meldung'?(rec.tow?MAIL_RULES.abschlepp.filter(x=>x[0]!=='werkstatt'||rec.tow.garageMail):(MAIL_RULES[rec.sub]||[])):rec.kind==='uebernahme'?MAIL_RULES.uebernahme:rec.kind==='abschlepp'?MAIL_RULES.abschlepp.filter(x=>x[0]!=='werkstatt'||rec.garageMail):[];
 const eh=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dDate=d=>d.toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'});
 const dTime=d=>d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
@@ -1955,6 +1963,7 @@ function mailShell(inner,banner){return `<div style="font-family:Helvetica,Arial
 ${banner||''}${inner}
 <p style="font-size:12px;color:#6A7378;border-top:1px solid #E2E7EA;padding-top:10px;margin-top:22px">Clean Service Scaramuzzo AG · Industriestrasse 5 · 8307 Effretikon · 0844 355 355 · info@clean-service.ch</p></div>`;}
 function mailFor(rec,rule){
+  if(rec.kind==='meldung'&&rec.tow){const tr=Object.assign({},rec,rec.tow,{kind:'abschlepp',gps:rec.tow.gps||rec.gps,note:[I18N.de['m_'+rec.sub],rec.note].filter(Boolean).join(': '),tel:''});const out=mailFor(tr,rule);out.attach=out.attach.replace('Abschleppung','Abschleppung-Fahrzeugmeldung');return out;}
   const [who,kind]=rule;const v=veh(rec.veh);const to=who==='werkstatt'?{addr:rec.garageMail,label:rec.garage}:MAIL_TO[who];const at=new Date(rec.at);
   const vehTxt=`Nr. ${v.nr} ${v.model}`;const plateTxt=v.plate;
   const pdfName=`${rec.id}_${rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankprotokoll'):rec.kind==='uebernahme'?(rec.sub==='rueckgabe'?'Fahrzeugabgabe':'Fahrzeuguebernahme'):rec.kind==='abschlepp'?'Abschleppung':'Fahrzeugmeldung'}_${v.plate.replace(/\s/g,'')}.pdf`;
@@ -2166,6 +2175,20 @@ function addDbUser(x){
 }
 async function loadDbUsers(){try{const l=await rpc('fz_users');(l||[]).forEach(addDbUser);S.usersLoaded=true;if(S.account==='admin'&&S.aView==='users')render();}catch(e){console.warn(e);}}
 loadDbUsers();
+
+/* Fahrzeugstamm: in der Verwaltung hinzugefügte, geänderte und entfernte Fahrzeuge */
+function vehData(v){const o={};['nr','model','plate','kind','fuel','ins','insTel','garage','garageAddr','garageMail','contract'].forEach(k=>{if(v[k]!==undefined)o[k]=v[k];});return o;}
+function removeVeh(id){const i=VEH.findIndex(v=>v.id===id);if(i>=0){const [v]=VEH.splice(i,1);v.removed=true;if(!VEH_GONE.some(x=>x.id===id))VEH_GONE.push(v);}if(S.vehicleId===id&&S.screen!=='flow'&&S.screen!=='abschlepp')S.vehicleId=null;}
+async function loadDbVehicles(){
+  try{const l=await rpc('fz_vehicles');
+    (l||[]).forEach(r=>{let v=veh(r.veh);
+      if(r.removed){if(!v){v=Object.assign({id:r.veh,lastKm:null,status:'aktiv'},r.data||{});VEH_GONE.push(v);}else removeVeh(r.veh);return;}
+      if(v){Object.assign(v,r.data||{});const g=VEH_GONE.findIndex(x=>x.id===r.veh);if(g>=0){VEH_GONE.splice(g,1);delete v.removed;VEH.push(v);}}
+      else VEH.push(Object.assign({id:r.veh,lastKm:null,status:'aktiv'},r.data||{}));});
+    VEH.sort((a,b)=>+a.nr-+b.nr);if(S.account&&S.screen!=='flow')render();
+  }catch(e){console.warn(e);}
+}
+loadDbVehicles();
 
 })();
 </script>
