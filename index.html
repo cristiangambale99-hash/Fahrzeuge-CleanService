@@ -547,6 +547,7 @@ h1,h2,.q,.greet,.vmodel{font-family:var(--font-h)}
 .resp-form .dot{width:12px;height:12px;margin:0}
 .resp-fine{font-weight:700;color:#A8322A!important}
 .resp-form.green{border-color:#2FA35C;color:#1F7A43}
+.orig{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -1263,7 +1264,7 @@ function evTitle(h){if(h.kind==='abschlepp')return t('abs_ev');if(h.kind==='tank
 function evDetail(h){
   if(h.kind==='abschlepp')return `${h.garage}${h.note?' · '+h.note:''}`;
   if(h.kind==='tanken')return `${t('fuel_'+h.fuel)} · ${h.liter.toFixed(1)} ${h.fuel==='strom'?'kWh':'L'} · CHF ${fmtChf(h.chf)}`;
-  if(h.kind==='meldung'){if(h.dmg)return dmgText(h.dmg);if(h.flt)return fltText(h.flt);return (h.note||'').trim()||t('noNote');}
+  if(h.kind==='meldung'){const o=S.account==='ma'&&h.orig?h.orig:null;if(h.dmg)return dmgText(o&&o['dmg.text']?Object.assign({},h.dmg,{text:o['dmg.text'].text}):h.dmg);if(h.flt)return fltText(o&&o['flt.text']?Object.assign({},h.flt,{text:o['flt.text'].text}):h.flt);return ((o&&o.bemerkung?o.bemerkung.text:h.note)||'').trim()||t('noNote');}
   return `${h.key?t('key_'+h.key)+' · ':''}${photosTxt(h.nPhotos)} · ${h.missing.length?t('zub_missing',{list:h.missing.map(k=>t('zub_'+k)).join(', ')}):t('zub_all')}${h.notClean?' · '+t('notClean'):''}`;
 }
 
@@ -1486,8 +1487,9 @@ function submit(){
   if(S.submitting)return;
   S.submitting=true;render();
   setTimeout(async()=>{
-    const d=S.data,v=veh(),km=(isTrailer(v)||isGeraet(v))?null:num(d.km);
+    const TR=await translateData(S.data);const d=TR.d,v=veh(),km=(isTrailer(v)||isGeraet(v))?null:num(d.km);
     const rec={id:'FZ-2026-'+String(++S.seq).padStart(5,'0'),kind:S.flow,veh:v.id,who:S.user.name,at:new Date(),km,prio:null};
+    if(TR.orig)rec.orig=TR.orig;
     let notice={cls:'normal',key:'nNormal'};
     if(S.flow==='tanken'){
       Object.assign(rec,{fuel:d.fuel,liter:num(d.liter),chf:num(d.chf),dept:d.dept,photos:P('receipt').slice()});if(isGeraet(v))rec.geraet=(d.geraet||'').trim();
@@ -1606,6 +1608,7 @@ function aShell(content){
 }
 function aHead(title,sub,action){return `<div class="ahead"><div><h1>${title}</h1>${sub?`<p class="hint">${sub}</p>`:''}</div>${action||''}</div>`;}
 function kpi(label,val,sub,tone){return `<div class="kpi ${tone?'k-'+tone:''}"><span class="kpi-l">${label}</span><span class="kpi-v num">${val}</span>${sub?`<span class="kpi-s">${sub}</span>`:''}</div>`;}
+function aOrig(h,k){const o=origOf(h,k);return o?`<small class="orig">Original (${esc(langDe(o.src))}): ${esc(o.text)}</small>`:'';}
 function mRow(h){const v=veh(h.veh);return `<button class="mrow" data-act="msel" data-id="${h.id}"><span class="mrow-ic t-${MTYPES[h.sub].tone}">${ic(MTYPES[h.sub].icon)}</span><span class="mrow-b"><span class="mrow-t"><b>${esc(evTitle(h))}</b>${prPill(h.prio)}</span><span class="mrow-d">${esc(h.note||'Ohne Bemerkung')}</span><span class="mrow-m">${plate(v)} ${esc(v.model)} · ${esc(h.who)} · ${rel(h.at)}</span></span>${stPill(h.status)}</button>`;}
 
 function aDash(){
@@ -1636,9 +1639,9 @@ function aDrawer(){
   const h=S.history.find(x=>x.id===S.aSel);if(!h)return '';const v=veh(h.veh);
   const rows=[['Gemeldet von',esc(h.who)],['Zeitpunkt',dS(h.at)],['KM-Stand',h.km!=null?fmtKm(h.km)+' km':'–']];
   if(h.gps)rows.push(['Ortsstempel',`${h.gps.addr?esc(h.gps.addr)+'<br>':''}<span class="num">${h.gps.lat.toFixed(5)}, ${h.gps.lon.toFixed(5)}</span>${h.gps.acc!=null?` · ±${h.gps.acc} m`:''} · ${dS(new Date(h.gps.at))}<br><a href="https://www.google.com/maps?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener">Auf Karte ansehen</a>`]);else if(h.ort)rows.push(['Ort',esc(h.ort)]);
-  if(h.dmg){rows.push(['Schaden',esc((h.dmg.types||[]).filter(k=>k!=='andere').map(k=>deL('d_'+k)).concat((h.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '))]);rows.push(['Stelle',esc((h.dmg.where||[]).map(k=>deL('p_'+k)).join(', '))]);if(h.dmg.text)rows.push(['Beschreibung',esc(h.dmg.text)]);}
-  else if(h.flt){rows.push(['Anzeige',esc((h.flt.types||[]).filter(k=>k!=='andere').map(k=>deL('f_'+k)).concat((h.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '))]);if(h.flt.text)rows.push(['Beschreibung',esc(h.flt.text)]);}
-  else rows.push([h.sub==='fehler'?'Anzeige':h.sub==='schaden'?'Beschreibung':'Bemerkung',esc(h.note||'Ohne Bemerkung')]);
+  if(h.dmg){rows.push(['Schaden',esc((h.dmg.types||[]).filter(k=>k!=='andere').map(k=>deL('d_'+k)).concat((h.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '))]);rows.push(['Stelle',esc((h.dmg.where||[]).map(k=>deL('p_'+k)).join(', '))]);if(h.dmg.text)rows.push(['Beschreibung',esc(h.dmg.text)+aOrig(h,'dmg.text')]);}
+  else if(h.flt){rows.push(['Anzeige',esc((h.flt.types||[]).filter(k=>k!=='andere').map(k=>deL('f_'+k)).concat((h.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '))]);if(h.flt.text)rows.push(['Beschreibung',esc(h.flt.text)+aOrig(h,'flt.text')]);}
+  else rows.push([h.sub==='fehler'?'Anzeige':h.sub==='schaden'?'Beschreibung':'Bemerkung',esc(h.note||'Ohne Bemerkung')+aOrig(h,'bemerkung')]);
   if(h.third)rows.push(['Drittperson',`${esc(h.third.name)}, ${esc(h.third.tel)}${h.third.kz?' · '+esc(h.third.kz):''}`],['Polizei / Protokoll',`${h.third.pol==='ja'?'Polizei vor Ort':'Keine Polizei'} · Protokoll ${h.third.prot==='ja'?'ausgefüllt':'nicht ausgefüllt'}`]);
   if(h.third&&h.third.file)rows.push(['Unfallprotokoll',h.third.file.type.startsWith('image')?`<button class="linkbtn" data-act="protimg" data-id="${h.id}">${esc(h.third.file.name)} ansehen</button>`:`<button class="linkbtn" data-act="protdl" data-id="${h.id}">${esc(h.third.file.name)} herunterladen</button>`]);
   return `<div class="scrim" data-act="mclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Meldung ${h.id}">
@@ -1882,6 +1885,7 @@ const DE=k=>I18N.de[k]||k;
 const SLOT_DE={front:'Front',heck:'Heck',fahrer:'Fahrerseite',beifahrer:'Beifahrerseite',innen:'Innenraum',detail:'Bestehende Schäden / Details',zustand:'Zustand'};
 
 async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
+  const OR=k=>{const o=!ext&&origOf(rec,k);return o?`\n(Original ${langDe(o.src)}: ${o.text})`:'';};
   const {PDFDocument,StandardFonts,rgb}=PDFLib;
   const doc=await PDFDocument.create();
   const v=veh(rec.veh);
@@ -1919,7 +1923,7 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
   text(`Vorgang ${rec.id} · erfasst am ${deDT(rec.at)}`,PDF_L,y,F,9.5,C_MUTED);y-=10;
 
   section(v.kind==='geraet'?'Gerät':'Fahrzeug');
-  if(v.kind==='geraet'){kv('Bereich',v.model);kv('Gerät',rec.geraet||'–');}else{kv('Fahrzeug',`${v.model} (Nr. ${v.nr})`);kv('Kennzeichen',v.plate);}
+  if(v.kind==='geraet'){kv('Bereich',v.model);kv('Gerät',(rec.geraet||'–')+OR('geraet'));}else{kv('Fahrzeug',`${v.model} (Nr. ${v.nr})`);kv('Kennzeichen',v.plate);}
   if(rec.km!=null)kv('Kilometerstand',fmtKm(rec.km)+' km');
 
   if(rec.kind==='tanken'){
@@ -1945,9 +1949,9 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
     kv('Art der Meldung',DE('m_'+rec.sub));kv('Priorität',rec.prio?DE('prio_'+rec.prio):null);kv('Gemeldet von',rec.who);kv('Zeitpunkt',deDT(rec.at));
     if(rec.gps){kv('Ortsstempel',`${rec.gps.addr?rec.gps.addr+'\n':''}${rec.gps.lat.toFixed(5)}, ${rec.gps.lon.toFixed(5)} ${rec.gps.acc!=null?`(Genauigkeit ca. ${rec.gps.acc} m)`:''}\n${deDT(new Date(rec.gps.at))}`);kv('Karte',`https://www.google.com/maps?q=${rec.gps.lat.toFixed(5)},${rec.gps.lon.toFixed(5)}`);}
     else if(rec.ort)kv('Ort',rec.ort);
-    if(rec.dmg){kv('Schaden',(rec.dmg.types||[]).filter(k=>k!=='andere').map(k=>DE('d_'+k)).concat((rec.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '));kv('Stelle am Fahrzeug',(rec.dmg.where||[]).map(k=>DE('p_'+k)).join(', '));if(rec.dmg.text)kv('Beschreibung',rec.dmg.text);}
-    else if(rec.flt){kv('Anzeige',(rec.flt.types||[]).filter(k=>k!=='andere').map(k=>DE('f_'+k)).concat((rec.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '));if(rec.flt.text)kv('Beschreibung',rec.flt.text);}
-    else kv(rec.sub==='fehler'?'Anzeige':rec.sub==='schaden'?'Beschreibung':'Bemerkung',rec.note||'Ohne Bemerkung');
+    if(rec.dmg){kv('Schaden',(rec.dmg.types||[]).filter(k=>k!=='andere').map(k=>DE('d_'+k)).concat((rec.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', '));kv('Stelle am Fahrzeug',(rec.dmg.where||[]).map(k=>DE('p_'+k)).join(', '));if(rec.dmg.text)kv('Beschreibung',rec.dmg.text+OR('dmg.text'));}
+    else if(rec.flt){kv('Anzeige',(rec.flt.types||[]).filter(k=>k!=='andere').map(k=>DE('f_'+k)).concat((rec.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', '));if(rec.flt.text)kv('Beschreibung',rec.flt.text+OR('flt.text'));}
+    else kv(rec.sub==='fehler'?'Anzeige':rec.sub==='schaden'?'Beschreibung':'Bemerkung',rec.note?rec.note+OR('bemerkung'):'Ohne Bemerkung');
     if(rec.sub==='schaden')kv('Unfall mit Drittperson',rec.unfall?'Ja':'Nein');
     if(rec.tow){const tw=rec.tow,pv=tw.provider||{};section('Abschleppung');kv('Pannendienst angerufen',`${pv.name||'–'}, ${pv.tel||'–'}`);if(pv.contract)kv('Vertrag',`${pv.contractLabel}, gültig bis ${new Date(pv.contractUntil).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'})}`);kv('Abgeschleppt zu',`${tw.garage}\n${tw.garageAddr}`);if(!ext&&tw.garageMail)kv('Garage informiert per E-Mail',tw.garageMail);}
     if(rec.third&&!ext){section('Angaben zur Drittperson');kv('Name',rec.third.name);kv('Telefon',rec.third.tel);kv('Kennzeichen',rec.third.kz);kv('Polizei vor Ort',rec.third.pol==='ja'?'Ja':'Nein');kv('Unfallprotokoll',rec.third.prot==='ja'?('Ausgefüllt'+(rec.third.file?` – ${rec.third.file.type==='application/pdf'?'im Anhang':'siehe unten'} (${rec.third.file.name})`:'')):'Nicht ausgefüllt');}
@@ -1958,11 +1962,11 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
     (rec.log||[]).forEach(l=>kv(deDT(l.at),`${l.text} (${l.who})`));}
   }else{
     section('Vorgang');
-    kv('Art',DE('u_'+rec.sub));if(rec.grund)kv('Grund',rec.grund==='andere'?rec.grundTxt:DE('gr_'+rec.grund));kv('Mitarbeiter',rec.who);kv('Zeitpunkt',deDT(rec.at));if(rec.key)kv('Schlüssel',DE('key_'+rec.key));
+    kv('Art',DE('u_'+rec.sub));if(rec.grund)kv('Grund',rec.grund==='andere'?rec.grundTxt+OR('grundTxt'):DE('gr_'+rec.grund));kv('Mitarbeiter',rec.who);kv('Zeitpunkt',deDT(rec.at));if(rec.key)kv('Schlüssel',DE('key_'+rec.key));
     const ks=(rec.keyPhotos||[]).map(src=>({src,label:'Schlüssel mit Anhänger'}));
     if(ks.length){section('Schlüssel',170);await photos(ks);}
     section('Zustand und Zubehör');
-    kv('Sauber und ordentlich',rec.notClean?'Nein':'Ja');if(rec.notClean&&rec.note)kv('Bemerkung',rec.note);
+    kv('Sauber und ordentlich',rec.notClean?'Nein':'Ja');if(rec.notClean&&rec.note)kv('Bemerkung',rec.note+OR('zustandTxt'));
     ZUB.forEach(k=>{const val=rec.zub?rec.zub[k]:(rec.missing||[]).includes(k)?'nein':'ja';kv(zubL(k,rec.sub,DE),val==='nein'?(k==='abgeschlossen'?'Nein':'Nein – fehlt'):'Ja');});
     if(rec.sub!=='rueckgabe')kv('Dienstwagenreglement',rec.reglement===false?'Nicht bestätigt':'Version 1.0 vom 26. Oktober 2021 gelesen und akzeptiert (Anhang)');
     const sp=rec.slotPhotos?Object.entries(rec.slotPhotos).flatMap(([k,a])=>a.map(src=>({src,label:SLOT_DE[k]||k}))):[];
@@ -2017,8 +2021,9 @@ function mailShell(inner,banner){return `<div style="font-family:Helvetica,Arial
 <div style="border-bottom:3px solid #2BB6B7;padding:0 0 10px;margin-bottom:16px"><span style="font-size:18px;font-weight:bold;color:#2BB6B7;letter-spacing:.04em">CLEAN SERVICE</span> <span style="font-size:11px;color:#6A7378;letter-spacing:.12em">BY SCARAMUZZO</span></div>
 ${banner||''}${inner}
 <p style="font-size:12px;color:#6A7378;border-top:1px solid #E2E7EA;padding-top:10px;margin-top:22px">Clean Service Scaramuzzo AG · Industriestrasse 5 · 8307 Effretikon · 0844 355 355 · info@clean-service.ch</p></div>`;}
+function origHtml(rec,p){const o=origOf(rec,p);return o?`<br><span style="color:#6A7378;font-size:13px">Original (${langDe(o.src)}): ${eh(o.text)}</span>`:'';}
 function mailFor(rec,rule){
-  if(rec.kind==='meldung'&&rec.tow){const tr=Object.assign({},rec,rec.tow,{kind:'abschlepp',gps:rec.tow.gps||rec.gps,note:[I18N.de['m_'+rec.sub],rec.note].filter(Boolean).join(': '),tel:''});const out=mailFor(tr,rule);out.attach=out.attach.replace('Abschleppung','Abschleppung-Fahrzeugmeldung');return out;}
+  if(rec.kind==='meldung'&&rec.tow){const tr=Object.assign({},rec,rec.tow,{_origKey:origKeyFor(rec),kind:'abschlepp',gps:rec.tow.gps||rec.gps,note:[I18N.de['m_'+rec.sub],rec.note].filter(Boolean).join(': '),tel:''});const out=mailFor(tr,rule);out.attach=out.attach.replace('Abschleppung','Abschleppung-Fahrzeugmeldung');return out;}
   const [who,kind]=rule;const v=veh(rec.veh);const to=who==='werkstatt'?{addr:rec.garageMail,label:rec.garage}:MAIL_TO[who];const at=new Date(rec.at);
   const ger=v.kind==='geraet';const vehTxt=ger?`${v.model}${rec.geraet?' – '+rec.geraet:''}`:`Nr. ${v.nr} ${v.model}`;const plateTxt=v.plate;
   const pdfName=`${rec.id}_${rec.kind==='tanken'?(rec.fuel==='strom'?'Ladevorgang':'Tankprotokoll'):rec.kind==='uebernahme'?(rec.sub==='rueckgabe'?'Fahrzeugabgabe':'Fahrzeuguebernahme'):rec.kind==='abschlepp'?'Abschleppung':'Fahrzeugmeldung'}_${(v.plate||'Geraete-HW-SPEZ').replace(/\s/g,'')}.pdf`;
@@ -2028,7 +2033,7 @@ function mailFor(rec,rule){
     const e=rec.fuel==='strom',u=e?'kWh':'L';
     return Object.assign(base,{subject:[`Tankprotokoll ${rec.id}`,vehTxt,plateTxt,dDate(at),`CHF ${rec.chf.toFixed(2)}`].filter(Boolean).join(' · '),
       html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${e?'Neuer Ladevorgang':'Neuer Tankvorgang'}</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr einen ${e?'Ladevorgang':'Tankvorgang'} erfasst.</p>`+
-        mailRows([[ger?'Bereich':'Fahrzeug',eh(ger?v.model:vehTxt)],['Gerät',ger?eh(rec.geraet||''):null],['Kennzeichen',plateTxt?eh(plateTxt):null],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],[e?'Energie':'Treibstoff',eh(I18N.de['fuel_'+rec.fuel])],['Menge',`${rec.liter.toFixed(1)} ${u}`],['Betrag',`<b>CHF ${rec.chf.toFixed(2)}</b>`],['Preis pro '+(e?'kWh':'Liter'),`CHF ${(rec.chf/rec.liter).toFixed(2)}`],['Mitarbeiter',eh(rec.who)],['Abteilung',rec.dept?eh(I18N.de['dept_'+rec.dept]):null],['Vorgang',rec.id]])+
+        mailRows([[ger?'Bereich':'Fahrzeug',eh(ger?v.model:vehTxt)],['Gerät',ger?eh(rec.geraet||'')+origHtml(rec,'geraet'):null],['Kennzeichen',plateTxt?eh(plateTxt):null],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],[e?'Energie':'Treibstoff',eh(I18N.de['fuel_'+rec.fuel])],['Menge',`${rec.liter.toFixed(1)} ${u}`],['Betrag',`<b>CHF ${rec.chf.toFixed(2)}</b>`],['Preis pro '+(e?'kWh':'Liter'),`CHF ${(rec.chf/rec.liter).toFixed(2)}`],['Mitarbeiter',eh(rec.who)],['Abteilung',rec.dept?eh(I18N.de['dept_'+rec.dept]):null],['Vorgang',rec.id]])+
         `<p style="margin:0">Das Tankprotokoll mit dem Foto der Quittung ist als PDF angehängt.</p>`)});
   }
   if(rec.kind==='abschlepp'){
@@ -2039,7 +2044,7 @@ function mailFor(rec,rule){
       const banner=`<div style="background:#B8433A;color:#fff;padding:10px 14px;border-radius:6px;font-weight:bold;margin-bottom:14px">Fahrzeug wird abgeschleppt – ${eh(rec.garage)}</div>`;
       return Object.assign(base,{subject:`ABSCHLEPPUNG · ${vehTxt} · ${plateTxt} · ${rec.who} · nach ${rec.garage} (${rec.id})`,
         html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">Abschleppung</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr eine Panne gemeldet und den Abschleppdienst bestellt.</p>`+
-          mailRows([['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Mitarbeiter',eh(rec.who)],['Handy Mitarbeiter',rec.tel?eh(rec.tel):null],['Standort der Panne',locHtml],['Was ist passiert',rec.note?eh(rec.note):null],['Pannendienst angerufen',`${eh(p.name||'')}, ${eh(p.tel||'')}`],['Vertrag',p.contract?`${eh(p.contractLabel)} (gültig bis ${cUntil})`:null],['Abgeschleppt zu',`<b>${eh(rec.garage)}</b><br>${eh(rec.garageAddr)}`],['Garage informiert',rec.garageMail?eh(rec.garageMail):'Keine E-Mail hinterlegt'],['Referenz',rec.id]])+
+          mailRows([['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Mitarbeiter',eh(rec.who)],['Handy Mitarbeiter',rec.tel?eh(rec.tel):null],['Standort der Panne',locHtml],['Was ist passiert',rec.note?eh(rec.note)+(rec._origKey?origHtml(rec,rec._origKey):''):null],['Pannendienst angerufen',`${eh(p.name||'')}, ${eh(p.tel||'')}`],['Vertrag',p.contract?`${eh(p.contractLabel)} (gültig bis ${cUntil})`:null],['Abgeschleppt zu',`<b>${eh(rec.garage)}</b><br>${eh(rec.garageAddr)}`],['Garage informiert',rec.garageMail?eh(rec.garageMail):'Keine E-Mail hinterlegt'],['Referenz',rec.id]])+
           `<p style="margin:0">Das Protokoll ist als PDF angehängt. Die Garage hat eine eigene Mail erhalten, dass das Fahrzeug zu ihr gebracht wird.</p>`,banner)});
     }
     return Object.assign(base,{subject:`Abschleppung zu Ihnen: Fahrzeug ${plateTxt} (${v.model}) – Clean Service Scaramuzzo AG`,
@@ -2055,7 +2060,7 @@ function mailFor(rec,rule){
     const nF=(rec.photos||[]).length+(rec.keyPhotos||[]).length||rec.nPh||0;
     return Object.assign(base,{subject:`${ut} · ${vehTxt} · ${plateTxt} · ${rec.who} · ${dDate(at)}${issue?' · BITTE PRÜFEN':''} (${rec.id})`,
       html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(ut)}</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr ${ab?'das Fahrzeug abgegeben':rec.sub==='temporaer'?'das Fahrzeug temporär übernommen':'das Fahrzeug übernommen'}.</p>`+
-        mailRows([['Art',eh(ut)],['Grund',rec.grund?eh(rec.grund==='andere'?rec.grundTxt:I18N.de['gr_'+rec.grund]):null],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],['Mitarbeiter',eh(rec.who)],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
+        mailRows([['Art',eh(ut)],['Grund',rec.grund?eh(rec.grund==='andere'?rec.grundTxt:I18N.de['gr_'+rec.grund])+(rec.grund==='andere'?origHtml(rec,'grundTxt'):''):null],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],['Mitarbeiter',eh(rec.who)],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note)+origHtml(rec,'zustandTxt'):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
         (ab?'':`<p style="margin:0 0 8px">Der Mitarbeiter wurde in der App darauf hingewiesen, dass er ab sofort für das Fahrzeug verantwortlich ist (Schäden, Bussen) und bei der Abgabe das Abgabeformular ausfüllen muss (sonst Busse CHF 100.–).</p>`)+`<p style="margin:0">Das Protokoll mit allen Fotos${ab?'':' und dem Dienstwagenreglement'} ist als PDF angehängt.</p>`,banner)});
   }
   const typ=I18N.de['m_'+rec.sub];const prio=rec.prio?I18N.de['prio_'+rec.prio]:'';
@@ -2069,7 +2074,7 @@ function mailFor(rec,rule){
     const banner=`<div style="background:${alarm?'#B8433A':rec.prio==='hoch'?'#FBEDEB':'#EEF8F9'};color:${alarm?'#fff':rec.prio==='hoch'?'#B8433A':'#177F80'};padding:10px 14px;border-radius:6px;font-weight:bold;margin-bottom:14px">${alarm?'Sofort bearbeiten: Unfall mit Drittperson':'Priorität '+eh(prio)}</div>`;
     return Object.assign(base,{subject:`${alarm?'SOFORT · ':''}${typ}${rec.unfall?' mit Drittperson':''} · Priorität ${prio} · ${vehTxt} · ${plateTxt} (${rec.id})`,
       html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(typ)}${rec.unfall?' – Unfall mit Drittperson':''}</p><p style="margin:0 0 12px;color:#6A7378">Gemeldet von ${eh(rec.who)} am ${dDate(at)} um ${dTime(at)} Uhr.</p>`+
-        mailRows([['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],[rec.dmg?'Schaden':rec.flt?'Anzeige':null,what],['Stelle am Fahrzeug',where],['Beschreibung',desc?eh(desc):null],['Ort',rec.sub==='schaden'?gpsLine:null],['Drittperson',rec.third?eh(`${rec.third.name}, ${rec.third.tel}${rec.third.kz?' · '+rec.third.kz:''}`):null],['Polizei / Protokoll',rec.third?`${rec.third.pol==='ja'?'Polizei vor Ort':'Keine Polizei'} · Protokoll ${rec.third.prot==='ja'?'ausgefüllt':'nicht ausgefüllt'}`:null],['Fotos',nPh?nPh+' im PDF':null],['Vorgang',rec.id]])+
+        mailRows([['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],[rec.dmg?'Schaden':rec.flt?'Anzeige':null,what],['Stelle am Fahrzeug',where],['Beschreibung',desc?eh(desc)+origHtml(rec,origKeyFor(rec)):null],['Ort',rec.sub==='schaden'?gpsLine:null],['Drittperson',rec.third?eh(`${rec.third.name}, ${rec.third.tel}${rec.third.kz?' · '+rec.third.kz:''}`):null],['Polizei / Protokoll',rec.third?`${rec.third.pol==='ja'?'Polizei vor Ort':'Keine Polizei'} · Protokoll ${rec.third.prot==='ja'?'ausgefüllt':'nicht ausgefüllt'}`:null],['Fotos',nPh?nPh+' im PDF':null],['Vorgang',rec.id]])+
         (ext.length?`<p style="margin:0 0 8px"><b>Automatisch informiert:</b> ${ext.map(x=>eh(x.label)+' ('+eh(x.addr)+')').join(', ')}</p>`:'')+
         `<p style="margin:0">Alle Angaben und Fotos sind im angehängten PDF. Status und Zuständigkeit werden in der Verwaltung der Fahrzeug-App gepflegt.</p>`,banner)});
   }
@@ -2244,6 +2249,30 @@ async function loadDbVehicles(){
   }catch(e){console.warn(e);}
 }
 loadDbVehicles();
+
+/* Automatische Übersetzung von Freitexten ins Deutsche (über /api/translate) */
+const TR_FIELDS=['dmg.text','flt.text','bemerkung','zustandTxt','grundTxt','geraet'];
+const LANG_DE={es:'Spanisch',pt:'Portugiesisch',it:'Italienisch',en:'Englisch',fr:'Französisch',sq:'Albanisch',hr:'Kroatisch',sr:'Serbisch',bs:'Bosnisch',tr:'Türkisch',ta:'Tamilisch',ti:'Tigrinya',ar:'Arabisch',pl:'Polnisch',ro:'Rumänisch',uk:'Ukrainisch',ru:'Russisch',nl:'Niederländisch',sk:'Slowakisch',cs:'Tschechisch',hu:'Ungarisch',mk:'Mazedonisch',so:'Somali',fa:'Persisch',ku:'Kurdisch',tl:'Tagalog',th:'Thai',vi:'Vietnamesisch',zh:'Chinesisch'};
+const langDe=c=>LANG_DE[c]||(c?c.toUpperCase():'andere Sprache');
+const getP=(o,p)=>p.split('.').reduce((a,k)=>a&&a[k],o);
+function setP(o,p,v){const ks=p.split('.');let a=o;for(let i=0;i<ks.length-1;i++)a=a[ks[i]];a[ks[ks.length-1]]=v;}
+async function translateData(d){
+  const paths=TR_FIELDS.filter(p=>{const v=getP(d,p);return typeof v==='string'&&v.trim().length>=2;});
+  if(!paths.length||!MAIL_ENDPOINT)return {d,orig:null};
+  try{
+    const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),7000);
+    const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texts:paths.map(p=>getP(d,p).trim())}),signal:ctl.signal});
+    clearTimeout(tm);if(!r.ok)return {d,orig:null};
+    const j=await r.json();const res=j&&j.results||[];
+    const dT=Object.assign({},d);if(d.dmg)dT.dmg=Object.assign({},d.dmg);if(d.flt)dT.flt=Object.assign({},d.flt);
+    const orig={};
+    paths.forEach((p,i)=>{const x=res[i];const o=getP(d,p).trim();if(!x||!x.text||!x.src||x.src==='de'||x.text.trim().toLowerCase()===o.toLowerCase())return;setP(dT,p,x.text.trim());orig[p]={text:o,src:x.src};});
+    return {d:dT,orig:Object.keys(orig).length?orig:null};
+  }catch(e){console.warn('Übersetzung nicht möglich',e);return {d,orig:null};}
+}
+/* Original-Zeile für Mail/PDF/Verwaltung */
+function origOf(rec,p){return rec&&rec.orig&&rec.orig[p]||null;}
+function origKeyFor(rec){if(rec.kind==='meldung')return rec.dmg?'dmg.text':rec.flt?'flt.text':'bemerkung';if(rec.kind==='uebernahme')return 'zustandTxt';return null;}
 
 })();
 </script>
