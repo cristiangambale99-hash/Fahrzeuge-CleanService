@@ -1,11 +1,3 @@
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2BB6B7">
-<meta name="robots" content="noindex, nofollow">
-<style>html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Clean Service Fahrzeug-App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -548,10 +540,14 @@ h1,h2,.q,.greet,.vmodel{font-family:var(--font-h)}
 .resp-fine{font-weight:700;color:#A8322A!important}
 .resp-form.green{border-color:#2FA35C;color:#1F7A43}
 .orig{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.4}
+.pfs{border:1px solid var(--line);border-radius:var(--r-m);padding:14px 14px 16px;margin:6px 0 0;display:flex;flex-direction:column;gap:12px;background:var(--surface-2)}
+.pfs legend{font-weight:600;font-size:14px;padding:0 6px}
+.pfs .hint{margin:0;font-size:13px}
+.pfs-sub{display:flex;flex-direction:column;gap:12px;padding:12px;border:1px dashed var(--cs-4);border-radius:var(--r-s);background:var(--surface)}
+.pfs-sub[hidden],.pfs .field[hidden]{display:none}
+.cbx{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;cursor:pointer}
+.cbx input{width:20px;height:20px;accent-color:var(--cs)}
 </style>
-</head>
-<body>
-
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -1685,7 +1681,7 @@ function aFahrzeug(){
   const cost=S.history.filter(h=>h.kind==='tanken'&&h.veh===v.id&&h.at>=Date.now()-30*864e5).reduce((s,h)=>s+h.chf,0);
   const hist=S.history.filter(h=>h.veh===v.id).sort((x,y)=>y.at-x.at);
   return `<button class="linkbtn backlink" data-act="aview" data-v="fahrzeuge">${ic('back')}Alle Fahrzeuge</button>`+aHead(`${esc(v.model)} <span class="h-sub">Nr. ${v.nr}</span>`,`${plate(v)} ${vstPill(v.status)}`)+
-  `<div class="kpis">${kpi('Letzter KM-Stand',v.lastKm!=null?fmtKm(v.lastKm)+' km':'–')}${kpi('Zugeteilt an',a?esc(a.who):'Niemand',a?(a.grund?(a.grund==='andere'?a.grundTxt:DE('gr_'+a.grund))+' · ':'')+'seit '+a.at.toLocaleDateString('de-CH'):'')}${kpi('Tankkosten 30 Tage',chf(cost),isTrailer(v)?'':`<button class="linkbtn" data-act="vtank" data-id="${v.id}">Alle Tankvorgänge ansehen</button>`)}${kpi('Offene Meldungen',om.length,'',om.length?'danger':'')}</div>${v.ins?`<section class="apanel pannen"><div class="apanel-h"><h2>Pannenhilfe und Abschleppen</h2></div><dl class="sum">${[['Treibstoff',DRIVE_L[v.fuel||'']],['Versicherung',v.ins],['Pannendienst',v.insTel],v.contract?[v.contract.label,`bis ${new Date(v.contract.until).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'})} oder ${fmtKm(v.contract.km)} km · Assistance ${v.contract.tel} · ${contractActive(v)?'<b>aktiv</b>':'abgelaufen'}`]:null,['Abschleppen zu',`${esc(v.garage)}, ${esc(v.garageAddr)}`]].filter(Boolean).map(([x,y])=>`<div><dt>${x}</dt><dd>${y}</dd></div>`).join('')}</dl></section>`:''}
+  `<div class="kpis">${kpi('Letzter KM-Stand',v.lastKm!=null?fmtKm(v.lastKm)+' km':'–')}${kpi('Zugeteilt an',a?esc(a.who):'Niemand',a?(a.grund?(a.grund==='andere'?a.grundTxt:DE('gr_'+a.grund))+' · ':'')+'seit '+a.at.toLocaleDateString('de-CH'):'')}${kpi('Tankkosten 30 Tage',chf(cost),isTrailer(v)?'':`<button class="linkbtn" data-act="vtank" data-id="${v.id}">Alle Tankvorgänge ansehen</button>`)}${kpi('Offene Meldungen',om.length,'',om.length?'danger':'')}</div>
   <div class="acols"><section class="apanel pad"><h2 class="h3">Stammdaten</h2>
     <form class="form" data-form="veh" novalidate>
       <label class="field" for="e-model"><span>Bezeichnung</span><input id="e-model" name="model" value="${esc(v.model)}" required></label>
@@ -1693,6 +1689,7 @@ function aFahrzeug(){
       <div class="frow"><label class="field" for="e-kind"><span>Typ</span><select id="e-kind" name="kind"><option value="auto" ${!isTrailer(v)?'selected':''}>Fahrzeug</option><option value="anhaenger" ${isTrailer(v)?'selected':''}>Anhänger</option></select></label>
       <label class="field" for="e-fuel"><span>Antrieb</span><select id="e-fuel" name="fuel">${Object.entries(DRIVE_L).map(([k,l])=>`<option value="${k}" ${(v.fuel||'')===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
       <label class="field" for="e-status"><span>Status</span><select id="e-status" name="status">${Object.entries(VST_L).map(([k,l])=>`<option value="${k}" ${v.status===k?'selected':''}>${l}</option>`).join('')}</select></label>
+      ${pannenFields(v)}
       <p class="err" id="ferr" role="alert" hidden></p>
       <button class="primary" type="submit">Änderungen speichern</button>
     </form>
@@ -1700,6 +1697,47 @@ function aFahrzeug(){
   <section class="apanel"><div class="apanel-h"><h2>Fahrzeughistorie</h2><span class="muted">${hist.length} Vorgänge</span></div>${hist.length?`<ul class="evs flat">${hist.map(h=>evItem(h,false).replace('<div class="ev-h">',`<div class="ev-h">${h.kind==='meldung'?stPill(h.status):''}`)).join('')}</ul>`:'<p class="empty pad">Noch keine Vorgänge für dieses Fahrzeug.</p>'}</section></div>`;
 }
 
+const GARAGES=[{name:'Fegola Automobile',addr:'Weiacherstrasse 80, 8427 Rorbas',mail:'info@fegolaautomobile.ch'},{name:'Garage Gerstl AG',addr:'Kempttalstrasse 21, 8320 Fehraltorf',mail:'buero@garage-gerstl.ch'},{name:'Häusermann Automobile AG',addr:'Am Dorfbach 14, 8308 Illnau-Effretikon',mail:'info.il@haeusermann.com'},{name:'Garage Carrosserie Moser AG',addr:'Aspstrasse 4, 8472 Seuzach',mail:'info@garagemoser.ch'}];
+const INSURERS={Allianz:'0800 22 33 44',Zurich:'0800 80 80 80'};
+function pannenFields(v){
+  const insSel=!v.ins?'':INSURERS[v.ins]?v.ins:'andere';
+  const gi=GARAGES.findIndex(g=>g.name===v.garage);const gSel=!v.garage?'':gi>=0?String(gi):'andere';
+  const c=v.contract||null;
+  return `<fieldset class="pfs"><legend>Pannenhilfe und Abschleppen</legend>
+    <p class="hint">Diese Angaben sieht der Mitarbeiter im Abschleppdienst: wen er anruft, wohin das Fahrzeug gebracht wird und welche Garage die Mail erhält.</p>
+    <div class="frow"><label class="field" for="e-ins"><span>Versicherung</span><select id="e-ins" name="ins"><option value="" ${insSel===''?'selected':''}>Keine hinterlegt</option>${Object.keys(INSURERS).map(k=>`<option value="${k}" ${insSel===k?'selected':''}>${k}</option>`).join('')}<option value="andere" ${insSel==='andere'?'selected':''}>Andere …</option></select></label>
+    <label class="field" for="e-instel"><span>Telefon Pannendienst</span><input id="e-instel" name="insTel" type="tel" value="${esc(v.insTel||'')}" placeholder="0800 …"></label></div>
+    <label class="field" for="e-insother" ${insSel==='andere'?'':'hidden'}><span>Name der Versicherung</span><input id="e-insother" name="insOther" value="${insSel==='andere'?esc(v.ins):''}"></label>
+    <label class="field" for="e-gsel"><span>Abschleppen zu (Garage)</span><select id="e-gsel" name="gSel"><option value="" ${gSel===''?'selected':''}>Keine hinterlegt</option>${GARAGES.map((g,i)=>`<option value="${i}" ${gSel===String(i)?'selected':''}>${esc(g.name)} – ${esc(g.addr)}</option>`).join('')}<option value="andere" ${gSel==='andere'?'selected':''}>Andere Garage …</option></select></label>
+    <div class="pfs-sub" id="e-gother" ${gSel==='andere'?'':'hidden'}>
+      <label class="field" for="e-gname"><span>Name der Garage</span><input id="e-gname" name="gName" value="${gSel==='andere'?esc(v.garage):''}"></label>
+      <label class="field" for="e-gaddr"><span>Adresse</span><input id="e-gaddr" name="gAddr" value="${gSel==='andere'?esc(v.garageAddr||''):''}" placeholder="Strasse Nr., PLZ Ort"></label>
+      <label class="field" for="e-gmail"><span>E-Mail der Garage (für die Abschlepp-Mail)</span><input id="e-gmail" name="gMail" type="email" value="${gSel==='andere'?esc(v.garageMail||''):''}" placeholder="info@garage.ch"></label>
+    </div>
+    <label class="cbx" for="e-hasc"><input id="e-hasc" name="hasC" type="checkbox" ${c?'checked':''}> Wartungsvertrag oder Garantie mit eigener Assistance-Nummer</label>
+    <div class="pfs-sub" id="e-cblk" ${c?'':'hidden'}>
+      <div class="frow"><label class="field" for="e-clabel"><span>Bezeichnung</span><input id="e-clabel" name="cLabel" value="${esc(c?c.label:'')}" placeholder="z. B. Wartungsvertrag Renault"></label>
+      <label class="field" for="e-ctel"><span>Telefon Assistance</span><input id="e-ctel" name="cTel" type="tel" value="${esc(c?c.tel:'')}" placeholder="+41 …"></label></div>
+      <div class="frow"><label class="field" for="e-cuntil"><span>Gültig bis</span><input id="e-cuntil" name="cUntil" type="date" value="${esc(c?c.until:'')}"></label>
+      <label class="field" for="e-ckm"><span>oder bis km</span><input id="e-ckm" name="cKm" inputmode="numeric" value="${c&&c.km!=null?esc(String(c.km)):''}" placeholder="80000"></label></div>
+      <p class="hint small">Bis zu diesem Datum bzw. km-Stand zeigt die App die Assistance-Nummer, danach automatisch den normalen Pannendienst.${c?` Aktuell: <b>${contractActive(v)?'aktiv':'abgelaufen'}</b>.`:''}</p>
+    </div>
+  </fieldset>`;
+}
+function readPannen(d,err){
+  const o={};
+  if(d.ins==='andere'){if(!d.insOther)return err('Bitte den Namen der Versicherung eingeben.');o.ins=d.insOther;}else o.ins=d.ins||null;
+  o.insTel=(d.insTel||'').trim()||null;
+  if(o.ins&&!o.insTel)return err('Bitte die Telefonnummer des Pannendienstes eingeben.');
+  if(d.gSel==='andere'){if(!d.gName||!d.gAddr)return err('Bitte Name und Adresse der Garage eingeben.');if(d.gMail&&!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(d.gMail))return err('Die E-Mail-Adresse der Garage ist ungültig.');o.garage=d.gName;o.garageAddr=d.gAddr;o.garageMail=(d.gMail||'').toLowerCase()||null;}
+  else if(d.gSel!==''&&d.gSel!=null&&GARAGES[+d.gSel]){const g=GARAGES[+d.gSel];o.garage=g.name;o.garageAddr=g.addr;o.garageMail=g.mail;}
+  else{o.garage=null;o.garageAddr=null;o.garageMail=null;}
+  if(d.hasC){const km=String(d.cKm||'').replace(/[^\d]/g,'');
+    if(!d.cLabel||!d.cTel||!d.cUntil)return err('Bitte beim Vertrag Bezeichnung, Assistance-Telefon und «Gültig bis» ausfüllen.');
+    o.contract={label:d.cLabel,tel:d.cTel,until:d.cUntil,km:km?+km:null};}
+  else o.contract=null;
+  return o;
+}
 function aTanken(){
   const now=new Date();const tm=S.tm==null?0:S.tm,tv=S.tveh||'all';
   const mRange=i=>[new Date(now.getFullYear(),now.getMonth()-i,1),new Date(now.getFullYear(),now.getMonth()-i+1,1)];
@@ -1832,6 +1870,9 @@ Object.assign(A,{
   logout:()=>{S.adminCode=null;S.history=[];S.fullCache={};S.account=null;S.user=null;S.sheet=null;S.aSel=null;S.modal=null;S.flow=null;render();top0();}
 });
 app.addEventListener('change',e=>{
+  {const x=e.target;if(x.id==='e-ins'){const o=document.getElementById('e-insother');if(o)o.hidden=x.value!=='andere';const tl=document.getElementById('e-instel');if(tl&&INSURERS[x.value])tl.value=INSURERS[x.value];}
+   if(x.id==='e-gsel'){const b=document.getElementById('e-gother');if(b)b.hidden=x.value!=='andere';}
+   if(x.id==='e-hasc'){const b=document.getElementById('e-cblk');if(b)b.hidden=!x.checked;}}
   const x=e.target,k=x.dataset.adm;if(!k)return;
   if(k==='assign'){const h=curM();h.assignee=x.value||null;mlog(h,'Zuständig: '+(x.value||'niemand'));if(x.value&&h.status==='offen'){h.status='bearbeitung';mlog(h,'Status: In Bearbeitung');}dbPatch(h);toast('Zuständigkeit gespeichert');}
   if(k==='tm'){S.tm=x.value==='all'?'all':+x.value;render();}
@@ -1853,6 +1894,7 @@ app.addEventListener('submit',e=>{
     const pn=d.plate.replace(/\s/g,'').toUpperCase();
     if(VEH.some(v=>v!==self&&v.plate.replace(/\s/g,'').toUpperCase()===pn))return err(`Das Kennzeichen ${d.plate} ist bereits erfasst.`);
     const data={model:d.model,nr:d.nr,plate:d.plate.toUpperCase(),kind:d.kind,fuel:d.kind==='anhaenger'?null:(d.fuel||null)};
+    if(self){const pn=readPannen(d,err);if(!pn)return;Object.assign(data,pn);}
     if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:self.id,p_data:vehData(self),p_removed:false}).then(()=>toast('Stammdaten gespeichert')).catch(()=>toast('Speichern fehlgeschlagen – bitte Verbindung prüfen'));}
     else{const nv=Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data);const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Wird gespeichert …';}
       rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:nv.id,p_data:vehData(nv),p_removed:false}).then(()=>{VEH.push(nv);VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}).catch(x=>{console.warn(x);if(btn){btn.disabled=false;btn.textContent='Hinzufügen';}err('Speichern fehlgeschlagen – bitte Verbindung prüfen und nochmals versuchen.');});}
@@ -2277,5 +2319,3 @@ function origKeyFor(rec){if(rec.kind==='meldung')return rec.dmg?'dmg.text':rec.f
 })();
 </script>
 
-</body>
-</html>
