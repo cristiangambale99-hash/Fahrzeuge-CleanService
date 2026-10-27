@@ -547,6 +547,22 @@ h1,h2,.q,.greet,.vmodel{font-family:var(--font-h)}
 .pfs-sub[hidden],.pfs .field[hidden]{display:none}
 .cbx{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;cursor:pointer}
 .cbx input{width:20px;height:20px;accent-color:var(--cs)}
+.kmalert{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-left:4px solid var(--danger);margin:16px 0 0}
+.kmalert .kic{flex:none;width:40px;height:40px;border-radius:10px;background:var(--danger-soft);color:var(--danger);display:grid;place-items:center}
+.kmalert-b{flex:1;min-width:0}.kmalert h2{font-size:16px;margin:0 0 3px}.kmalert p{margin:0;color:var(--muted);font-size:14px}
+.kmred{color:var(--danger)}.kbtns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.kbtns>button{width:auto}
+.kbusse{background:var(--danger)!important;border-color:var(--danger)!important}
+tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);font-size:12.5px}
+.kmd{font-weight:700;white-space:nowrap}.kmd-abw{color:var(--danger)}.kmd-tipp{color:var(--warn)}.kmd-ok{color:var(--ok)}
+.st-km{background:var(--danger-soft);color:var(--danger);border-color:#F0CFCB}
+.ktl{list-style:none;margin:0;padding:0}.ktl li{position:relative;padding:0 0 16px 28px}.ktl li small{display:block;color:var(--muted);font-size:13px}
+.ktl li:before{content:"";position:absolute;left:8px;top:20px;bottom:0;width:2px;background:var(--line)}.ktl li:last-child:before{display:none}
+.ktl .kd{position:absolute;left:0;top:2px;width:18px;height:18px;border-radius:50%;background:var(--cs-tint);border:2px solid var(--cs)}
+.ktl .gap .kd{background:var(--danger-soft);border-color:var(--danger)}.ktl .sp .kd{background:var(--warn-soft);border-color:var(--warn)}
+.ktl .kgb{border:1.5px dashed #E2A59F;background:var(--danger-soft);border-radius:10px;padding:8px 12px}.ktl .kgb b{color:var(--danger)}
+.khint{background:var(--warn-soft);color:#5e430f;border-radius:10px;padding:12px;font-size:14px}
+.drawer .inp{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:var(--surface)}
+.drawer .fl{font-size:13px;font-weight:600;margin-bottom:-8px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1418,7 +1434,7 @@ async function pnLogin(){
   let u=USERS.find(x=>x.pnh===h&&x.role==='ma');
   if(!u){await loadDbUsers();u=USERS.find(x=>x.pnh===h&&x.role==='ma');}
   if(!u)return fail('pn_e');
-  S.pn='';S.pnCand=u.id;render();top0();
+  S.pn='';S.pnCand=u.id;S.pnCandNr=v;render();top0();
 }
 function vLoginPick(){
   if(S.pnCand){const u=USERS.find(x=>x.id===S.pnCand);return `<main class="login picker confirm"><div class="login-h"><h1>${t('pn_confirm_t')}</h1></div>
@@ -1479,6 +1495,15 @@ function next(){
   S.idx++;render(true);top0();
   const nk=stepsFor()[S.idx];if(nk==='ort'&&!S.data.gps)setTimeout(gpsGet,150);
 }
+/* Km-Abgleich: Km-Stand der letzten Abgabe gegen den Km-Stand der neuen Übernahme */
+const KM_TOL=2;
+function kmCompare(r,km){
+  const l=r&&r.last;if(!l||l.sub!=='rueckgabe'||typeof l.km!=='number')return null;
+  const diff=Math.round(km-l.km);
+  return {abg:{id:l.id,who:l.who,pn:l.pn||null,at:l.at,km:l.km},diff,state:diff>=KM_TOL?'abw':diff<=-KM_TOL?'tipp':'ok',spur:(r.spur||[]).filter(x=>x.who).map(x=>({id:x.id,kind:x.kind,sub:x.sub||null,who:x.who,pn:x.pn||null,at:x.at,km:typeof x.km==='number'?x.km:null}))};
+}
+function pnTxt(n,pn){return pn?`${n} (PN ${pn})`:n;}
+function kmSpurTxt(x){const d=new Date(x.at);return `${x.kind==='tanken'?'Tankvorgang':x.kind==='meldung'?'Meldung':'Vorgang'} von ${pnTxt(x.who,x.pn)} am ${d.toLocaleDateString('de-CH')}${x.km!=null?' · '+fmtKm(x.km)+' km':''}`;}
 function submit(){
   if(S.submitting)return;
   S.submitting=true;render();
@@ -1486,6 +1511,7 @@ function submit(){
     const TR=await translateData(S.data);const d=TR.d,v=veh(),km=(isTrailer(v)||isGeraet(v))?null:num(d.km);
     const rec={id:'FZ-2026-'+String(++S.seq).padStart(5,'0'),kind:S.flow,veh:v.id,who:S.user.name,at:new Date(),km,prio:null};
     if(TR.orig)rec.orig=TR.orig;
+    if(S.user&&S.user.pn)rec.pn=S.user.pn;
     let notice={cls:'normal',key:'nNormal'};
     if(S.flow==='tanken'){
       Object.assign(rec,{fuel:d.fuel,liter:num(d.liter),chf:num(d.chf),dept:d.dept,photos:P('receipt').slice()});if(isGeraet(v))rec.geraet=(d.geraet||'').trim();
@@ -1503,6 +1529,7 @@ function submit(){
     if(rec.tow)notice={cls:notice.cls==='alarm'?'alarm':'hoch',key:'nAbs'};
     rec.notice=notice;
     const pnh=S.user.pnh;
+    if(rec.kind==='uebernahme'&&rec.sub!=='rueckgabe'&&km!=null){try{rec.kmc=kmCompare(await rpc('fz_km_check',{p_pnh:pnh,p_veh:v.id}),km);}catch(e){console.warn(e);}}
     const id=await dbInsert(rec,pnh);
     if(id){rec.id=id;}else{rec.id='FZ-LOKAL-'+Date.now().toString(36).toUpperCase();rec._unsynced=true;const q=pendLoad();q.push({rec:fullRec(rec),pnh});pendSave(q);}
     sendMails(rec).then(()=>{if(!rec._unsynced&&rec.mails)rpc('fz_mails',{p_pnh:pnh,p_id:rec.id,p_mails:rec.mails}).catch(()=>{});});
@@ -1596,11 +1623,11 @@ const userBy=n=>USERS.find(u=>u.name===n);
 
 function dbInfo(){return S.dbState==='fehler'?'<span class="dberr">Keine Verbindung zur Datenbank – Daten nicht aktuell</span>':S.dbState==='laden'&&!S.dbAt?'Daten werden geladen …':S.dbAt?'Stand '+S.dbAt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}):'';}
 function aShell(content){
-  const cnt=openM().length;
+  const cnt=openM().length,kmN=kmOpen().length;
   return `<header class="atop"><img class="logo" src="${LOGO}" alt="Clean Service by Scaramuzzo" width="2059" height="650"><span class="brand-tx">Verwaltung Fahrzeuge</span><button class="who" data-act="sheet" data-s="account" aria-label="Konto"><i>${S.user.initials}</i><span class="who-r">${esc(S.user.name)}</span></button></header>
-  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}</button>`).join('')}</nav>
+  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}</button>`).join('')}</nav>
   <main class="amain">${content}</main></div>
-  ${S.aSel?aDrawer():''}${S.modal?aModal():''}`;
+  ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.modal?aModal():''}`;
 }
 function aHead(title,sub,action){return `<div class="ahead"><div><h1>${title}</h1>${sub?`<p class="hint">${sub}</p>`:''}</div>${action||''}</div>`;}
 function kpi(label,val,sub,tone){return `<div class="kpi ${tone?'k-'+tone:''}"><span class="kpi-l">${label}</span><span class="kpi-v num">${val}</span>${sub?`<span class="kpi-s">${sub}</span>`:''}</div>`;}
@@ -1615,7 +1642,8 @@ function aDash(){
   const asg=VEH.filter(v=>assignment(v.id)).length,shop=VEH.filter(v=>v.status==='werkstatt').length;
   const feed=S.history.slice().sort((a,b)=>b.at-a.at).slice(0,8);
   return aHead('Übersicht',now.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · '+dbInfo(),`<button class="secondary sm" data-act="areload">Aktualisieren</button>`)+
-  `<div class="kpis">${kpi('Offene Meldungen',om.length,crit?`${crit} mit hoher Priorität`:'Keine mit hoher Priorität',crit?'danger':'')}${kpi('Tankkosten '+now.toLocaleDateString('de-CH',{month:'long'}),chf(cost),`${tk.length} Tankvorgänge`)}${kpi('Fahrzeuge zugeteilt',`${asg} / ${VEH.length}`,`${shop} in Werkstatt`)}${kpi('Vorgänge 7 Tage',wk,'Tanken, Meldungen, Übernahmen')}</div>
+  `<div class="kpis">${kpi('Offene Meldungen',om.length,crit?`${crit} mit hoher Priorität`:'Keine mit hoher Priorität',crit?'danger':'')}${kpi('Tankkosten '+now.toLocaleDateString('de-CH',{month:'long'}),chf(cost),`${tk.length} Tankvorgänge`)}${kpi('Fahrzeuge zugeteilt',`${asg} / ${VEH.length}`,`${shop} in Werkstatt`)}${kpi('Vorgänge 7 Tage',wk,'Tanken, Meldungen, Übernahmen')}${kpi('Km-Abweichungen',kmOpen().length,kmOpen().length?kmOpen().slice(0,3).map(h=>'+'+fmtKm(h.kmc.diff)+' km').join(', ')+' ohne Formular':'Keine offenen Fälle',kmOpen().length?'danger':'')}</div>
+  ${kmOpen().slice(0,3).map(kmAlert).join('')}${kmOpen().length>3?`<p class="hint">Weitere ${kmOpen().length-3} offene Km-Abweichungen unter <button class="linkbtn" data-act="aview" data-v="uebernahmen">Übernahmen</button>.</p>`:''}
   <div class="acols"><section class="apanel"><div class="apanel-h"><h2>Offene Meldungen</h2><button class="linkbtn" data-act="aview" data-v="meldungen">Alle anzeigen</button></div>${om.length?`<div class="mlist">${sortM(om).slice(0,6).map(mRow).join('')}</div>`:'<p class="empty pad">Keine offenen Meldungen.</p>'}</section>
   <section class="apanel"><div class="apanel-h"><h2>Letzte Aktivität</h2></div><ul class="feed">${feed.map(h=>{const [i,tn]=evIcon(h);const v=veh(h.veh);return `<li><span class="ev-ic t-${tn}">${ic(i)}</span><span><b>${esc(evTitle(h))}</b> · ${esc(v.model)} ${esc(v.plate)}<small>${esc(h.who)} · ${rel(h.at)}</small></span></li>`;}).join('')}</ul></section></div>`;
 }
@@ -1770,13 +1798,65 @@ function aUeb(){
   const free=VEH.filter(v=>!isTrailer(v)&&!assignment(v.id));
   const hist=S.history.filter(h=>h.kind==='uebernahme').sort((a,b)=>b.at-a.at).slice(0,15);
   const issues=a=>[...(a.missing||[]).map(k=>'fehlt: '+deL('zub_'+k)),a.notClean?'nicht sauber':''].filter(Boolean);
-  return aHead('Übernahmen','Wer fährt welches Fahrzeug – aus den Übernahmen und Abgaben der Mitarbeitenden.')+
+  return aHead('Übernahmen','Wer fährt welches Fahrzeug – aus den Übernahmen und Abgaben der Mitarbeitenden.')+kmSection()+
   `<section class="apanel"><div class="apanel-h"><h2>Aktuelle Zuteilung</h2><span class="muted">${cur.length} Fahrzeuge</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fahrzeug</th><th>Mitarbeiter</th><th>Grund</th><th>Seit</th><th>Hinweise bei Übernahme</th></tr></thead><tbody>
   ${cur.map(({v,a})=>`<tr class="click" data-act="vopen" data-id="${v.id}" tabindex="0"><td>${vLabel(v)}</td><td>${esc(a.who)}</td><td>${a.grund?esc(a.grund==='andere'?a.grundTxt:DE('gr_'+a.grund)):(a.sub==='definitiv'?'<span class="st st-ok">Definitiv</span>':'<span class="st st-bearbeitung">Temporär</span>')}</td><td>${a.at.toLocaleDateString('de-CH')}<small>${rel(a.at)}</small></td><td>${issues(a).length?`<span class="warn-t">${issues(a).join(', ')}</span>`:'<span class="muted">Keine</span>'}</td></tr>`).join('')}
   </tbody></table></div></section>
   <section class="apanel pad"><h2 class="h3">Nicht zugeteilt (${free.length})</h2><div class="freelist">${free.map(v=>`<button class="freechip" data-act="vopen" data-id="${v.id}">${plate(v)} ${esc(v.model)}</button>`).join('')}</div></section>
   <section class="apanel"><div class="apanel-h"><h2>Letzte Übernahmen und Abgaben</h2></div><ul class="evs flat">${hist.map(h=>evItem(h,true)).join('')}</ul></section>`;
 }
+
+
+/* ===== Km-Abgleich Abgabe → Übernahme (Verwaltung) ===== */
+const KMR_L={busse:'Busse verfügt',stellung:'Stellungnahme angefragt',ok:'Kein Verstoss'};
+function kmCases(){return S.history.filter(h=>h.kind==='uebernahme'&&h.kmc&&h.kmc.abg).sort((a,b)=>b.at-a.at);}
+function kmOpen(){return kmCases().filter(h=>h.kmc.state==='abw'&&!h.kmr);}
+function kmD(x){const d=new Date(x);return d.getDate()+'.'+(d.getMonth()+1)+'.';}
+function kmStatus(h){const k=h.kmc;if(h.kmr)return `<span class="st ${h.kmr.st==='busse'?'st-km':h.kmr.st==='stellung'?'st-bearbeitung':'st-ok'}">${KMR_L[h.kmr.st]||'Erledigt'}</span>`;return k.state==='abw'?'<span class="st st-km">Offen</span>':k.state==='tipp'?'<span class="st st-offen">Tippfehler?</span>':'<span class="st st-ok">In Ordnung</span>';}
+function kmDiffCell(k){return `<span class="kmd kmd-${k.state}">${k.diff>0?'+':''}${fmtKm(k.diff)} km</span>`;}
+function kmKind(x){return x.kind==='tanken'?'Tanken':x.kind==='meldung'?'Meldung':'Vorgang';}
+function kmPn(pn){return pn?'PN '+esc(String(pn))+' · ':'';}
+function kmAlert(h){const k=h.kmc,v=veh(h.veh);
+  return `<section class="apanel kmalert"><span class="kic">${ic('alert')}</span><div class="kmalert-b"><h2>Unerfasste Fahrt: <span class="kmred">+${fmtKm(k.diff)} km</span> bei Nr. ${esc(v.nr)} ${esc(v.model)} ${esc(v.plate||'')}</h2>
+  <p>Abgegeben von ${esc(pnTxt(k.abg.who,k.abg.pn))} am ${kmD(k.abg.at)} mit <b>${fmtKm(k.abg.km)} km</b>. Übernommen von ${esc(pnTxt(h.who,h.pn))} am ${kmD(h.at)} mit <b>${fmtKm(h.km)} km</b>. Dazwischen hat niemand ein Formular ausgefüllt.</p>
+  <div class="kbtns"><button class="primary sm" data-act="kmsel" data-id="${h.id}">Spurensuche öffnen</button><button class="secondary sm" data-act="aview" data-v="uebernahmen">Alle Km-Abweichungen</button></div></div></section>`;}
+function kmSection(){
+  const all=kmCases();if(!all.length)return `<section class="apanel pad"><h2 class="h3">Km-Abgleich Abgabe → Übernahme</h2><p class="hint" style="margin:0">Sobald nach einer Abgabe das Fahrzeug wieder übernommen wird, vergleicht die App die beiden Km-Stände. Ab ${KM_TOL} km Differenz erscheint der Fall hier und im Übernahme-Mail.</p></section>`;
+  const list=all.filter(h=>h.kmc.state!=='ok').concat(all.filter(h=>h.kmc.state==='ok').slice(0,10)).sort((a,b)=>b.at-a.at).slice(0,40);
+  return `<section class="apanel"><div class="apanel-h"><h2>Km-Abgleich Abgabe → Übernahme</h2><span class="muted">${kmOpen().length} offen · gemeldet ab ${KM_TOL} km</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fahrzeug</th><th>Abgabe</th><th>Übernahme</th><th>Differenz</th><th>Spur</th><th>Status</th></tr></thead><tbody>
+  ${list.map(h=>{const k=h.kmc,v=veh(h.veh),sp=k.state==='abw'?k.spur[0]:null;return `<tr class="click${k.state==='abw'&&!h.kmr?' kmrow':''}" data-act="kmsel" data-id="${h.id}" tabindex="0"><td><b>Nr. ${esc(v.nr)}</b> ${esc(v.model)}</td><td>${esc(k.abg.who)}<small>${kmPn(k.abg.pn)}${kmD(k.abg.at)} · ${fmtKm(k.abg.km)} km</small></td><td>${esc(h.who)}<small>${kmPn(h.pn)}${kmD(h.at)} · ${fmtKm(h.km)} km</small></td><td>${kmDiffCell(k)}</td><td>${k.state!=='abw'?'<span class="muted">–</span>':sp?`${kmKind(sp)} ${kmD(sp.at)}<small>${esc(sp.who)}${sp.pn?' · PN '+esc(String(sp.pn)):''}${k.spur.length>1?' · +'+(k.spur.length-1)+' weitere':''}</small>`:'<span class="muted">Keine Spur</span>'}</td><td>${kmStatus(h)}</td></tr>`;}).join('')}
+  </tbody></table></div></section>`;
+}
+function kmDrawer(){
+  const h=S.history.find(x=>x.id===S.kmSel);if(!h||!h.kmc)return '';const k=h.kmc,v=veh(h.veh);
+  const others=[...new Map(k.spur.filter(x=>x.who!==h.who&&x.who!==k.abg.who).map(x=>[x.who,x])).values()];
+  const target=others[0]||null;
+  const tl=[`<li><span class="kd"></span><b>Abgabe · ${esc(pnTxt(k.abg.who,k.abg.pn))}</b><small>${dS(new Date(k.abg.at))}</small><b class="num">${fmtKm(k.abg.km)} km</b></li>`];
+  if(k.state==='abw')tl.push(`<li class="gap"><span class="kd"></span><div class="kgb"><b>${fmtKm(k.diff)} km ohne Formular</b><small>${Math.max(0,Math.round((h.at-new Date(k.abg.at))/864e5))} Tage offiziell niemandem zugeteilt</small></div></li>`);
+  k.spur.forEach(x=>tl.push(`<li class="sp"><span class="kd"></span><b>${x.kind==='tanken'?'Tankvorgang':x.kind==='meldung'?'Meldung':'Vorgang'} · ${esc(pnTxt(x.who,x.pn))}</b><small>${dS(new Date(x.at))}</small>${x.km!=null?`<b class="num">${fmtKm(x.km)} km</b>`:''}</li>`));
+  tl.push(`<li><span class="kd"></span><b>Übernahme · ${esc(pnTxt(h.who,h.pn))}</b><small>${dS(h.at)}</small><b class="num">${fmtKm(h.km)} km</b></li>`);
+  let hint='';
+  if(k.state==='abw'){
+    if(target)hint=`<div class="khint"><b>Spur gefunden:</b> ${esc(pnTxt(target.who,target.pn))} hat in dieser Zeit mit dem Fahrzeug ${target.kind==='tanken'?'getankt':'eine Meldung erfasst'} (${kmD(target.at)}), es aber nie übernommen. ${others.length>1?'Weitere Personen siehe Ablauf.':'Diese Person ist sehr wahrscheinlich gefahren.'}</div>`;
+    else if(k.spur.length)hint=`<div class="khint"><b>Hinweis:</b> In dieser Zeit hat nur ${esc(k.spur[0].who)} etwas mit dem Fahrzeug erfasst (${kmKind(k.spur[0])} am ${kmD(k.spur[0].at)}) – ohne gültige Übernahme.</div>`;
+    else hint=`<div class="khint"><b>Keine Spur:</b> In dieser Zeit hat niemand etwas mit dem Fahrzeug erfasst. Bitte bei ${esc(k.abg.who)} und ${esc(h.who)} nachfragen.</div>`;
+  }else if(k.state==='tipp')hint=`<div class="khint">Der Km-Stand der Übernahme ist ${fmtKm(-k.diff)} km tiefer als bei der Abgabe. Wahrscheinlich hat sich jemand vertippt – bitte die Fotos vom Tacho prüfen.</div>`;
+  const who=target?target.who:(k.spur[0]&&k.spur[0].who)||'';
+  const dec=h.kmr?`<div class="notice n-normal"><b>${KMR_L[h.kmr.st]||'Erledigt'}</b>${h.kmr.who?' · '+esc(h.kmr.who):''} · ${dS(new Date(h.kmr.at))} durch ${esc(h.kmr.by||'Verwaltung')}${h.kmr.note?'<br>'+esc(h.kmr.note):''}</div><button class="secondary sm" data-act="kmset" data-st="" style="align-self:flex-start">Entscheid zurücksetzen</button>`:
+    k.state==='ok'?'':`<label class="fl" for="kmnote">Notiz (optional)</label><input id="kmnote" class="inp" placeholder="z. B. Stellungnahme erhalten, Fahrer bestätigt"><div class="kbtns"><button class="primary sm kbusse" data-act="kmset" data-st="busse" data-who="${esc(who)}">Busse CHF 100${who?' an '+esc(who):''}</button><button class="secondary sm" data-act="kmset" data-st="stellung" data-who="${esc(who)}">Um Stellungnahme bitten</button><button class="secondary sm" data-act="kmset" data-st="ok">Kein Verstoss, erledigt</button></div>`;
+  return `<div class="scrim" data-act="kmclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Km-Abgleich ${h.id}">
+  <div class="drawer-h"><div><span class="ev-id">Km-Abgleich · Nr. ${esc(v.nr)} ${esc(v.model)} ${esc(v.plate||'')}</span><h2>${k.state==='abw'?fmtKm(k.diff)+' km ohne Formular':k.state==='tipp'?'Km-Stand tiefer als bei der Abgabe':'Km-Stand stimmt'} ${kmStatus(h)}</h2></div><button class="iconbtn" data-act="kmclose" aria-label="Schliessen">${ic('x')}</button></div>
+  <div class="drawer-b"><section class="apanel pad"><h3 class="h3">Was ist passiert?</h3><ul class="ktl">${tl.join('')}</ul></section>${hint}${dec}<p class="hint">Übernahme ${esc(h.id)} · Abgabe ${esc(k.abg.id)}</p></div></aside>`;
+}
+Object.assign(A,{
+  kmsel:b=>{S.kmSel=b.dataset.id;render();},
+  kmclose:()=>{S.kmSel=null;render();},
+  kmset:b=>{const h=S.history.find(x=>x.id===S.kmSel);if(!h)return;const st=b.dataset.st;const n=document.getElementById('kmnote');
+    h.kmr=st?{st,who:b.dataset.who||null,note:n&&n.value.trim()||null,at:new Date().toISOString(),by:S.user.name}:null;
+    rpc('fz_update',{p_code:S.adminCode,p_id:h.id,p_patch:{kmr:h.kmr}}).then(()=>toast(st?KMR_L[st]+' – gespeichert':'Entscheid zurückgesetzt')).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
+    render();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.kmSel&&!S.modal&&!S.aSel){S.kmSel=null;render();}});
 
 function uTable(){
   const since=Date.now()-30*864e5,q=(S.uq||'').trim().toLowerCase(),f=S.uf||'all';
@@ -1865,7 +1945,7 @@ Object.assign(A,{
   loginpick:()=>{S.loginPick=true;render(true);top0();},
   loginback:()=>{S.loginPick=false;S.loginCode=false;S.pnCand=null;render();top0();},
   logincode:()=>{S.loginCode=true;render(true);top0();},
-  pnyes:b=>{S.pnCand=null;A.login(b);},
+  pnyes:b=>{const nr=S.pnCandNr;S.pnCand=null;S.pnCandNr=null;A.login(b);if(S.user&&nr)S.user.pn=nr;},
   pnno:()=>{S.pnCand=null;S.pn='';render();top0();const f=document.getElementById('pn');if(f)f.focus();},
   logout:()=>{S.adminCode=null;S.history=[];S.fullCache={};S.account=null;S.user=null;S.sheet=null;S.aSel=null;S.modal=null;S.flow=null;render();top0();}
 });
@@ -2004,7 +2084,8 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
     (rec.log||[]).forEach(l=>kv(deDT(l.at),`${l.text} (${l.who})`));}
   }else{
     section('Vorgang');
-    kv('Art',DE('u_'+rec.sub));if(rec.grund)kv('Grund',rec.grund==='andere'?rec.grundTxt+OR('grundTxt'):DE('gr_'+rec.grund));kv('Mitarbeiter',rec.who);kv('Zeitpunkt',deDT(rec.at));if(rec.key)kv('Schlüssel',DE('key_'+rec.key));
+    kv('Art',DE('u_'+rec.sub));if(rec.grund)kv('Grund',rec.grund==='andere'?rec.grundTxt+OR('grundTxt'):DE('gr_'+rec.grund));kv('Mitarbeiter',pnTxt(rec.who,rec.pn));
+    if(rec.kmc&&!ext){const kc=rec.kmc,ka=new Date(kc.abg.at);kv('Letzte Abgabe',`${pnTxt(kc.abg.who,kc.abg.pn)}, ${deDT(ka)} · ${fmtKm(kc.abg.km)} km`);kv('Km-Abgleich',kc.state==='ok'?`Stimmt (${kc.diff>=0?'+':''}${kc.diff} km)`:kc.state==='abw'?`Abweichung: +${fmtKm(kc.diff)} km ohne Formular`:`${kc.diff} km – tiefer als bei der Abgabe, evtl. Tippfehler`);if(kc.state==='abw'&&kc.spur.length)kc.spur.forEach((x,i)=>kv(i?'':'Spur im Zeitraum',kmSpurTxt(x)));}kv('Zeitpunkt',deDT(rec.at));if(rec.key)kv('Schlüssel',DE('key_'+rec.key));
     const ks=(rec.keyPhotos||[]).map(src=>({src,label:'Schlüssel mit Anhänger'}));
     if(ks.length){section('Schlüssel',170);await photos(ks);}
     section('Zustand und Zubehör');
@@ -2097,12 +2178,19 @@ function mailFor(rec,rule){
   if(rec.kind==='uebernahme'){
     const ut=I18N.de['u_'+rec.sub]||rec.sub;const ab=rec.sub==='rueckgabe';
     const miss=(rec.missing||[]).map(k=>I18N.de['zub_'+k]||k);
-    const issue=miss.length||rec.notClean;
-    const banner=`<div style="background:${issue?'#FBEDEB':'#EEF8F9'};color:${issue?'#B8433A':'#177F80'};padding:10px 14px;border-radius:6px;font-weight:bold;margin-bottom:14px">${issue?'Bitte prüfen: '+[miss.length?'Fehlt: '+eh(miss.join(', ')):null,rec.notClean?'Fahrzeug nicht sauber':null].filter(Boolean).join(' · '):'Alles in Ordnung'}</div>`;
+    const kc=rec.kmc||null,kAbw=!!(kc&&kc.state==='abw');
+    const issue=miss.length||rec.notClean||kAbw;
+    const banner=`<div style="background:${issue?'#FBEDEB':'#EEF8F9'};color:${issue?'#B8433A':'#177F80'};padding:10px 14px;border-radius:6px;font-weight:bold;margin-bottom:14px">${issue?'Bitte prüfen: '+[kAbw?fmtKm(kc.diff)+' km ohne Formular gefahren':null,miss.length?'Fehlt: '+eh(miss.join(', ')):null,rec.notClean?'Fahrzeug nicht sauber':null].filter(Boolean).join(' · '):'Alles in Ordnung'+(kc&&kc.state==='ok'?' · Km-Stand stimmt mit der letzten Abgabe überein':'')}</div>`;
+    const kAt=kc?new Date(kc.abg.at):null;
+    const kRows=!kc?[]:kc.state==='ok'?[['Km-Abgleich',`Stimmt (${kc.diff>=0?'+':''}${kc.diff} km seit der Abgabe von ${eh(pnTxt(kc.abg.who,kc.abg.pn))} am ${dDate(kAt)} mit ${fmtKm(kc.abg.km)} km)`]]:
+      [['Letzte Abgabe',`${eh(pnTxt(kc.abg.who,kc.abg.pn))}, ${dDate(kAt)}, ${dTime(kAt)} Uhr · ${fmtKm(kc.abg.km)} km`],
+       ['Differenz',kc.state==='abw'?`<b style="color:#B8433A">+${fmtKm(kc.diff)} km ohne Formular</b>`:`<b style="color:#8A5D12">${kc.diff} km – Km-Stand tiefer als bei der Abgabe, evtl. Tippfehler</b>`],
+       kc.state==='abw'?['Spur im Zeitraum',kc.spur.length?kc.spur.map(x=>eh(kmSpurTxt(x))).join('<br>'):'Keine – niemand hat in dieser Zeit etwas mit dem Fahrzeug erfasst']:null];
     const nF=(rec.photos||[]).length+(rec.keyPhotos||[]).length||rec.nPh||0;
-    return Object.assign(base,{subject:`${ut} · ${vehTxt} · ${plateTxt} · ${rec.who} · ${dDate(at)}${issue?' · BITTE PRÜFEN':''} (${rec.id})`,
-      html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(ut)}</p><p style="margin:0 0 12px;color:#6A7378">${eh(rec.who)} hat am ${dDate(at)} um ${dTime(at)} Uhr ${ab?'das Fahrzeug abgegeben':rec.sub==='temporaer'?'das Fahrzeug temporär übernommen':'das Fahrzeug übernommen'}.</p>`+
-        mailRows([['Art',eh(ut)],['Grund',rec.grund?eh(rec.grund==='andere'?rec.grundTxt:I18N.de['gr_'+rec.grund])+(rec.grund==='andere'?origHtml(rec,'grundTxt'):''):null],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],['Mitarbeiter',eh(rec.who)],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note)+origHtml(rec,'zustandTxt'):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
+    return Object.assign(base,{subject:`${ut} · ${vehTxt} · ${plateTxt} · ${rec.who} · ${dDate(at)}${kAbw?' · KM-ABWEICHUNG +'+fmtKm(kc.diff)+' km':issue?' · BITTE PRÜFEN':''} (${rec.id})`,
+      html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(ut)}</p><p style="margin:0 0 12px;color:#6A7378">${eh(pnTxt(rec.who,rec.pn))} hat am ${dDate(at)} um ${dTime(at)} Uhr ${ab?'das Fahrzeug abgegeben':rec.sub==='temporaer'?'das Fahrzeug temporär übernommen':'das Fahrzeug übernommen'}.</p>`+
+        mailRows([['Art',eh(ut)],['Grund',rec.grund?eh(rec.grund==='andere'?rec.grundTxt:I18N.de['gr_'+rec.grund])+(rec.grund==='andere'?origHtml(rec,'grundTxt'):''):null],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],...kRows,['Mitarbeiter',eh(pnTxt(rec.who,rec.pn))],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note)+origHtml(rec,'zustandTxt'):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
+        (kAbw?`<p style="margin:0 0 8px;color:#B8433A">Zwischen der Abgabe am ${dDate(kAt)} und dieser Übernahme wurde das Fahrzeug ${fmtKm(kc.diff)} km gefahren, ohne dass jemand eine Übernahme erfasst hat. Der Fall ist in der Verwaltung unter Übernahmen › Km-Abgleich offen und kann dort mit Busse, Stellungnahme oder «Kein Verstoss» abgeschlossen werden.</p>`:'')+
         (ab?'':`<p style="margin:0 0 8px">Der Mitarbeiter wurde in der App darauf hingewiesen, dass er ab sofort für das Fahrzeug verantwortlich ist (Schäden, Bussen) und bei der Abgabe das Abgabeformular ausfüllen muss (sonst Busse CHF 100.–).</p>`)+`<p style="margin:0">Das Protokoll mit allen Fotos${ab?'':' und dem Dienstwagenreglement'} ist als PDF angehängt.</p>`,banner)});
   }
   const typ=I18N.de['m_'+rec.sub];const prio=rec.prio?I18N.de['prio_'+rec.prio]:'';
@@ -2238,7 +2326,7 @@ async function loadAdmin(quiet){
   try{
     const d=await rpc('fz_list',{p_code:S.adminCode,p_tage:400});
     const full=S.fullCache||(S.fullCache={});
-    S.history=(d.vorgaenge||[]).map(r=>{r=revive(r);const f=full[r.id];if(f){const keep={status:r.status,assignee:r.assignee,log:r.log,mails:r.mails};return Object.assign(f,keep);}return r;});
+    S.history=(d.vorgaenge||[]).map(r=>{r=revive(r);const f=full[r.id];if(f){const keep={status:r.status,assignee:r.assignee,log:r.log,mails:r.mails,kmr:r.kmr};return Object.assign(f,keep);}return r;});
     VEH.forEach(v=>{v.status=(d.fahrzeuge&&d.fahrzeuge[v.id])||'aktiv';v.lastKm=null;});
     S.history.forEach(h=>{const v=VEH.find(x=>x.id===h.veh);if(v&&h.km!=null)v.lastKm=Math.max(v.lastKm||0,h.km);});
     S.dbState='ok';S.dbAt=new Date();
