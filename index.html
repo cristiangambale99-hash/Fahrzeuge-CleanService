@@ -563,6 +563,22 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .khint{background:var(--warn-soft);color:#5e430f;border-radius:10px;padding:12px;font-size:14px}
 .drawer .inp{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:var(--surface)}
 .drawer .fl{font-size:13px;font-weight:600;margin-bottom:-8px}
+.bdrop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:30px 18px;border:2px dashed var(--cs-4);border-radius:var(--r-m);background:var(--cs-tint);cursor:pointer;color:var(--ink)}
+.bdrop:hover{border-color:var(--cs)}.bdrop b{font-size:17px}.bdrop span:last-of-type{color:var(--muted);font-size:14px;max-width:460px}
+.bdrop-ic{width:52px;height:52px;border-radius:14px;background:var(--surface);color:var(--cs-ink);display:grid;place-items:center}.bdrop-ic .ic{width:26px;height:26px}
+.bread{display:flex;flex-direction:column;align-items:center;gap:8px;padding:34px 16px;text-align:center}.bread span:last-child{color:var(--muted);font-size:14px}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--cs-6);border-top-color:var(--cs);animation:bspin .8s linear infinite}@keyframes bspin{to{transform:rotate(360deg)}}
+.bscan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:22px;align-items:start}.bprev img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.bpdf{display:flex;flex-direction:column;align-items:center;gap:6px;padding:40px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.bres .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}.bres .field span{font-size:13px;font-weight:600}
+.bres input,.bres select,.drawer select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit;background:var(--surface);color:var(--ink)}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.bmatch{border-radius:10px;padding:12px 14px;margin:0 0 12px;font-size:14px}.bmatch p{margin:4px 0 0}.b-ok{background:var(--ok-soft);color:#1f5e3b}.b-warn{background:var(--warn-soft);color:#5e430f}
+.bm-s{font-size:13px;opacity:.85}.bm-k{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}.bm-who{font-size:18px;font-weight:700;margin:4px 0 0!important}
+.bnear{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px}.bnear .bm-k{color:var(--muted)}.bnear ul{list-style:none;margin:6px 0 0;padding:0;font-size:14px}.bnear li{padding:4px 0}.bnear small{display:block;color:var(--muted)}
+.drawer dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}.drawer dl.kv dt{color:var(--muted)}.drawer dl.kv dd{margin:0}
+.drawer .field{display:flex;flex-direction:column;gap:4px}.drawer .field span{font-size:13px;font-weight:600}.bbeleg{width:100%;border-radius:10px;border:1px solid var(--line)}
+@media(max-width:760px){.bscan{grid-template-columns:1fr}.bgrid{grid-template-columns:1fr}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1601,7 +1617,7 @@ Object.assign(ICONS,{
   logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',
   ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'
 });
-const ADM_NAV=[['dash','Übersicht','grid'],['meldungen','Meldungen','alert'],['fahrzeuge','Fahrzeuge','van'],['tanken','Tankvorgänge','fuel'],['uebernahmen','Übernahmen','key'],['users','Mitarbeitende','users'],['settings','Benachrichtigungen','bell']];
+const ADM_NAV=[['dash','Übersicht','grid'],['meldungen','Meldungen','alert'],['fahrzeuge','Fahrzeuge','van'],['tanken','Tankvorgänge','fuel'],['uebernahmen','Übernahmen','key'],['bussen','Bussen','clip'],['users','Mitarbeitende','users'],['settings','Benachrichtigungen','bell']];
 const ST_L={offen:'Offen',bearbeitung:'In Bearbeitung',erledigt:'Erledigt'};
 const VST_L={aktiv:'Aktiv',werkstatt:'In Werkstatt',ausser:'Ausser Betrieb'};
 const DRIVE_L={'':'Nicht erfasst',b95:'Benzin',diesel:'Diesel',strom:'Elektro'};
@@ -1623,11 +1639,11 @@ const userBy=n=>USERS.find(u=>u.name===n);
 
 function dbInfo(){return S.dbState==='fehler'?'<span class="dberr">Keine Verbindung zur Datenbank – Daten nicht aktuell</span>':S.dbState==='laden'&&!S.dbAt?'Daten werden geladen …':S.dbAt?'Stand '+S.dbAt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}):'';}
 function aShell(content){
-  const cnt=openM().length,kmN=kmOpen().length;
+  const cnt=openM().length,kmN=kmOpen().length,buN=(S.bus||[]).filter(b=>b.status==='pruefen').length;
   return `<header class="atop"><img class="logo" src="${LOGO}" alt="Clean Service by Scaramuzzo" width="2059" height="650"><span class="brand-tx">Verwaltung Fahrzeuge</span><button class="who" data-act="sheet" data-s="account" aria-label="Konto"><i>${S.user.initials}</i><span class="who-r">${esc(S.user.name)}</span></button></header>
-  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}</button>`).join('')}</nav>
+  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}${k==='bussen'&&buN?`<b class="cnt">${buN}</b>`:''}</button>`).join('')}</nav>
   <main class="amain">${content}</main></div>
-  ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.modal?aModal():''}`;
+  ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.busSel?busDrawer():''}${S.modal?aModal():''}`;
 }
 function aHead(title,sub,action){return `<div class="ahead"><div><h1>${title}</h1>${sub?`<p class="hint">${sub}</p>`:''}</div>${action||''}</div>`;}
 function kpi(label,val,sub,tone){return `<div class="kpi ${tone?'k-'+tone:''}"><span class="kpi-l">${label}</span><span class="kpi-v num">${val}</span>${sub?`<span class="kpi-s">${sub}</span>`:''}</div>`;}
@@ -1858,6 +1874,121 @@ Object.assign(A,{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.kmSel&&!S.modal&&!S.aSel){S.kmSel=null;render();}});
 
+
+/* ===== Bussen-Finder: Busse fotografieren → Claude liest aus → App findet den Fahrer ===== */
+const BUS_ENDPOINT=location.protocol==='file:'?'':'/api/busse-lesen';
+const BUS_ST={pruefen:'Bitte prüfen',zugewiesen:'Zugewiesen',erledigt:'Erledigt'};
+const busNorm=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function busVeh(pl){const n=busNorm(pl);if(!n)return null;return [...VEH,...VEH_GONE].find(v=>v.plate&&busNorm(v.plate)===n)||null;}
+function busWhen(d){if(!d||!d.datum)return null;const [y,m,dd]=d.datum.split('-').map(Number);if(!y||!m||!dd)return null;let hh=12,mi=0;if(d.uhrzeit){const t=d.uhrzeit.split(':').map(Number);if(!isNaN(t[0])){hh=t[0];mi=t[1]||0;}}return new Date(y,m-1,dd,hh,mi);}
+function busMatch(d){
+  const v=busVeh(d.kontrollschild),T=busWhen(d),noTime=!(d&&d.uhrzeit);
+  if(!v)return {st:'keinFz',v:null,T};
+  if(!T)return {st:'keinDatum',v,T};
+  const evs=S.history.filter(h=>h.veh===v.id&&h.kind==='uebernahme').sort((a,b)=>a.at-b.at);
+  const prev=[...evs].reverse().find(h=>h.at<=T)||null,next=evs.find(h=>h.at>T)||null;
+  const near=S.history.filter(h=>h.veh===v.id&&Math.abs(h.at-T)<=12*36e5).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T)).slice(0,5);
+  const r={v,T,noTime,prev,next,near,spur:[]};
+  if(!prev){r.st='keineDaten';if(next&&next.sub==='rueckgabe'){r.cand={who:next.who,pn:next.pn||null,why:`hat das Fahrzeug am ${dS(next.at)} abgegeben (Übernahme davor fehlt in der App)`};}return r;}
+  if(prev.sub!=='rueckgabe'){r.st='zugeteilt';r.cand={who:prev.who,pn:prev.pn||null,why:`Übernahme am ${dS(prev.at)}${next?(next.sub==='rueckgabe'?` · Abgabe am ${dS(next.at)}`:` · danach übernommen von ${next.who} am ${dS(next.at)} (ohne Abgabe)`):' · noch nicht abgegeben'}`};return r;}
+  r.st='frei';r.spur=S.history.filter(h=>h.veh===v.id&&h.kind!=='uebernahme'&&h.at>prev.at&&(!next||h.at<next.at)).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T));
+  const sp=r.spur[0];if(sp)r.cand={who:sp.who,pn:sp.pn||null,why:`hat in dieser Zeit ohne Übernahme mit dem Fahrzeug ${sp.kind==='tanken'?'getankt':'eine Meldung erfasst'} (${dS(sp.at)})`};
+  return r;
+}
+function busMatchHtml(m,d){
+  if(m.st==='keinFz')return `<div class="bmatch b-warn"><b>Fahrzeug nicht gefunden.</b> Das Kontrollschild «${esc(d.kontrollschild||'unleserlich')}» gehört zu keinem Fahrzeug der Flotte. Bitte das Kontrollschild prüfen.</div>`;
+  if(m.st==='keinDatum')return `<div class="bmatch b-warn"><b>Datum fehlt.</b> Ohne Datum der Übertretung kann die App den Fahrer nicht bestimmen. Bitte Datum (und Uhrzeit) eintragen.</div>`;
+  const vt=`Nr. ${esc(m.v.nr)} ${esc(m.v.model)} ${esc(m.v.plate||'')}`,when=m.T.toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})+(m.noTime?'':', '+m.T.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})+' Uhr');
+  let main;
+  if(m.st==='zugeteilt')main=`<div class="bmatch b-ok"><span class="bm-k">Gefunden</span><p class="bm-who">${esc(pnTxt(m.cand.who,m.cand.pn))}</p><p>hatte ${vt} am ${when}.</p><p class="bm-s">${esc(m.cand.why)}</p></div>`;
+  else if(m.st==='frei')main=`<div class="bmatch b-warn"><span class="bm-k">Niemandem zugeteilt</span><p>Am ${when} war ${vt} offiziell niemandem zugeteilt – abgegeben von ${esc(pnTxt(m.prev.who,m.prev.pn))} am ${dS(m.prev.at)}${m.next?`, wieder übernommen von ${esc(pnTxt(m.next.who,m.next.pn))} am ${dS(m.next.at)}`:''}.</p>${m.cand?`<p><b>Spur:</b> ${esc(pnTxt(m.cand.who,m.cand.pn))} ${esc(m.cand.why)}.</p>`:'<p>Keine Spur – in dieser Zeit hat niemand etwas mit dem Fahrzeug erfasst.</p>'}</div>`;
+  else main=`<div class="bmatch b-warn"><span class="bm-k">Keine Übernahme vor diesem Zeitpunkt</span><p>Für ${vt} gibt es vor dem ${when} keine Übernahme in der App.</p>${m.cand?`<p><b>Hinweis:</b> ${esc(pnTxt(m.cand.who,m.cand.pn))} ${esc(m.cand.why)}.</p>`:''}</div>`;
+  const near=m.near.length?`<div class="bnear"><span class="bm-k">Rund um diesen Zeitpunkt (±12 Std.)</span><ul>${m.near.map(h=>`<li><b>${esc(evTitle(h))}</b> · ${esc(pnTxt(h.who,h.pn))}<small>${dS(h.at)}${h.km!=null?' · '+fmtKm(h.km)+' km':''}</small></li>`).join('')}</ul></div>`:'';
+  return main+(m.noTime?'<p class="hint">Auf der Busse fehlt die Uhrzeit – die App rechnet mit 12:00 Uhr. Bitte prüfen, ob am selben Tag das Fahrzeug gewechselt hat.</p>':'')+near;
+}
+function busForm(d){
+  const f=(k,l,type,ph)=>`<label class="field" for="bf-${k}"><span>${l}</span><input id="bf-${k}" data-bf="${k}" type="${type||'text'}" value="${esc(d[k]==null?'':String(d[k]))}"${ph?` placeholder="${ph}"`:''}${type==='number'?' step="0.05" inputmode="decimal"':''}></label>`;
+  return `<div class="bgrid">${f('kontrollschild','Kontrollschild','text','ZH 123 456')}${f('betrag','Betrag CHF','number')}${f('datum','Datum der Übertretung','date')}${f('uhrzeit','Uhrzeit','time')}</div>${f('ort','Ort')}${f('uebertretung','Übertretung')}<div class="bgrid">${f('behoerde','Behörde')}${f('referenz','Referenz-Nr.')}${f('zahlbar_bis','Zahlbar bis','date')}${f('gebuehren','Gebühren CHF','number')}</div>`;
+}
+function busReadForm(){const d=Object.assign({},S.busScan.daten);document.querySelectorAll('[data-bf]').forEach(i=>{const k=i.dataset.bf;let v=i.value.trim();d[k]=v===''?null:(i.type==='number'?Number(v):v);});return d;}
+function busPersons(extra){const n=[...new Set([...(extra||[]),...USERS.filter(u=>u.role==='ma').map(u=>u.name)].filter(Boolean))];return n;}
+function aBussen(){
+  const L=S.bus||[],y=new Date().getFullYear(),yr=L.filter(b=>b.datum&&+b.datum.slice(0,4)===y);
+  const sum=yr.reduce((a,b)=>a+(+b.betrag||0)+(+b.gebuehren||0),0);
+  const sc=S.busScan;
+  let scan;
+  if(!sc)scan=`<label class="bdrop" for="bfile"><span class="bdrop-ic">${ic('camera')}</span><b>Busse fotografieren oder hochladen</b><span>Foto (JPG, PNG) oder PDF. Die App liest Kontrollschild, Datum, Uhrzeit, Ort und Betrag automatisch aus.</span><input id="bfile" type="file" accept="image/*,application/pdf" data-bfile hidden></label>`;
+  else if(sc.stage==='lesen')scan=`<div class="bread"><span class="spin" aria-hidden="true"></span><b>Busse wird gelesen …</b><span>Das dauert wenige Sekunden.</span></div>`;
+  else if(sc.stage==='fehler')scan=`<div class="warnbox"><b>Die Busse konnte nicht gelesen werden.</b> ${esc(sc.err||'')}</div><div class="kbtns"><button class="secondary sm" data-act="busmanual">Angaben von Hand eintragen</button><button class="secondary sm" data-act="busreset">Andere Datei wählen</button></div>`;
+  else{
+    const d=sc.daten,m=busMatch(d),cand=m.cand?m.cand.who:'';
+    const pers=busPersons([cand,...(m.spur||[]).map(h=>h.who),...(m.near||[]).map(h=>h.who)]);const sel=sc.who!==undefined?sc.who:cand;
+    scan=`<div class="bscan"><div class="bprev">${sc.mediaType==='application/pdf'?`<div class="bpdf">${ic('clip')}<b>PDF</b><span>${esc(sc.name||'Busse.pdf')}</span></div>`:`<img src="${sc.preview}" alt="Foto der Busse">`}${sc.usage?`<p class="hint">Gelesen mit Claude · ${(sc.usage.input_tokens+sc.usage.output_tokens).toLocaleString('de-CH')} Tokens</p>`:''}</div>
+    <div class="bres">${d.lesbar===false?`<div class="warnbox">Das Dokument sieht nicht wie eine lesbare Busse aus. Bitte die Angaben prüfen.</div>`:''}${d.hinweis?`<p class="hint">Hinweis: ${esc(d.hinweis)}</p>`:''}${d.sicherheit&&d.sicherheit!=='hoch'?`<p class="hint">Lese-Sicherheit: ${esc(d.sicherheit)} – Kontrollschild, Datum und Uhrzeit bitte mit dem Foto vergleichen.</p>`:''}
+    <h3 class="h3">Angaben der Busse</h3>${busForm(d)}<button class="secondary sm" data-act="busrecalc" style="width:auto">Zuordnung neu prüfen</button>
+    <h3 class="h3" style="margin-top:18px">Wer ist gefahren?</h3>${busMatchHtml(m,d)}
+    <label class="field" for="bwho"><span>Busse zuweisen an</span><select id="bwho"><option value="">Noch offen – bitte prüfen</option>${pers.map(n=>`<option ${n===sel?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+    <label class="field" for="bnote"><span>Notiz (optional)</span><input id="bnote" value="${esc(sc.note||'')}" placeholder="z. B. Lohnabzug Dezember"></label>
+    <div class="kbtns"><button class="primary sm" data-act="bussave">Busse speichern</button><button class="secondary sm" data-act="busreset">Abbrechen</button></div></div></div>`;
+  }
+  const rows=L.map(b=>{const v=[...VEH,...VEH_GONE].find(x=>x.id===b.veh);return `<tr class="click" data-act="bussel" data-id="${esc(b.id)}" tabindex="0"><td>${b.datum?new Date(b.datum+'T00:00').toLocaleDateString('de-CH'):'–'}<small>${b.uhrzeit?esc(b.uhrzeit)+' Uhr':''}</small></td><td>${v?`<b>Nr. ${esc(v.nr)}</b> ${esc(v.model)}<small>${esc(v.plate||'')}</small>`:esc(b.kontrollschild||'–')}</td><td>${esc(b.uebertretung||'–')}<small>${esc(b.ort||'')}</small></td><td class="r num">${b.betrag!=null?chf(+b.betrag+(+b.gebuehren||0)):'–'}</td><td>${b.who?esc(b.who)+`<small>${b.pn?'PN '+esc(String(b.pn)):''}</small>`:'<span class="muted">–</span>'}</td><td><span class="st ${b.status==='pruefen'?'st-km':b.status==='erledigt'?'st-ok':'st-bearbeitung'}">${BUS_ST[b.status]||b.status}</span></td></tr>`;}).join('');
+  return aHead('Bussen','Busse fotografieren oder als PDF hochladen – die App liest sie aus und findet anhand der Übernahmen und Abgaben heraus, wer das Fahrzeug zu diesem Zeitpunkt hatte.')+
+  `<div class="kpis">${kpi('Bitte prüfen',L.filter(b=>b.status==='pruefen').length,'Fahrer noch offen',L.some(b=>b.status==='pruefen')?'danger':'')}${kpi('Bussen '+y,yr.length,`${yr.filter(b=>b.status!=='pruefen').length} zugewiesen`)}${kpi('Total '+y,chf(sum),'Bussen inkl. Gebühren')}</div>
+  <section class="apanel pad" style="margin-top:16px">${scan}</section>
+  <section class="apanel"><div class="apanel-h"><h2>Erfasste Bussen</h2><span class="muted">${L.length}</span></div>${L.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Datum</th><th>Fahrzeug</th><th>Übertretung</th><th class="r">Betrag</th><th>Fahrer</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="empty pad">${S.busLoaded?'Noch keine Bussen erfasst.':'Bussen werden geladen …'}</p>`}</section>`;
+}
+function busDrawer(){
+  const b=(S.bus||[]).find(x=>x.id===S.busSel);if(!b)return '';const v=[...VEH,...VEH_GONE].find(x=>x.id===b.veh);
+  const rows=[['Kontrollschild',b.kontrollschild],['Fahrzeug',v?`Nr. ${v.nr} ${v.model}`:null],['Datum',b.datum?new Date(b.datum+'T00:00').toLocaleDateString('de-CH')+(b.uhrzeit?', '+b.uhrzeit+' Uhr':''):null],['Ort',b.ort],['Übertretung',b.uebertretung],['Betrag',b.betrag!=null?chf(+b.betrag):null],['Gebühren',b.gebuehren!=null?chf(+b.gebuehren):null],['Behörde',b.behoerde],['Referenz',b.referenz],['Zahlbar bis',b.zahlbar_bis?new Date(b.zahlbar_bis+'T00:00').toLocaleDateString('de-CH'):null],['Zuordnung',b.matchTxt],['Notiz',b.note],['Erfasst',b.savedAt?dS(new Date(b.savedAt))+(b.by?' durch '+b.by:''):null]].filter(r=>r[1]!=null&&r[1]!=='');
+  const pers=busPersons([b.who]);
+  return `<div class="scrim" data-act="busclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Busse ${esc(b.id)}">
+  <div class="drawer-h"><div><span class="ev-id">${esc(b.id)}</span><h2>${b.betrag!=null?chf(+b.betrag+(+b.gebuehren||0)):'Busse'} · ${esc(b.who||'Fahrer offen')} <span class="st ${b.status==='pruefen'?'st-km':b.status==='erledigt'?'st-ok':'st-bearbeitung'}">${BUS_ST[b.status]||''}</span></h2></div><button class="iconbtn" data-act="busclose" aria-label="Schliessen">${ic('x')}</button></div>
+  <div class="drawer-b"><dl class="kv">${rows.map(([a,c])=>`<dt>${a}</dt><dd>${esc(String(c))}</dd>`).join('')}</dl>
+  <label class="field" for="bdwho"><span>Fahrer</span><select id="bdwho"><option value="">Noch offen – bitte prüfen</option>${pers.map(n=>`<option ${n===b.who?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+  <div class="kbtns"><button class="primary sm" data-act="busupd">Fahrer speichern</button>${b.status!=='erledigt'&&b.who?'<button class="secondary sm" data-act="busupd" data-st="erledigt">Als erledigt markieren</button>':''}${b.status==='erledigt'?'<button class="secondary sm" data-act="busupd" data-st="zugewiesen">Wieder öffnen</button>':''}</div>
+  <h3 class="h3">Beleg</h3><div id="bbeleg">${S.busBeleg&&S.busBeleg.id===b.id?(S.busBeleg.src?(S.busBeleg.src.startsWith('data:application/pdf')?`<a href="${S.busBeleg.src}" download="${esc(b.id)}.pdf">PDF öffnen</a>`:`<img class="bbeleg" src="${S.busBeleg.src}" alt="Beleg">`):'<p class="hint">Kein Beleg gespeichert.</p>'):'<p class="hint">Beleg wird geladen …</p>'}</div></div></aside>`;
+}
+async function loadBussen(){try{S.bus=await rpc('fz_bussen_list',{p_code:S.adminCode})||[];S.busLoaded=true;}catch(e){console.warn(e);S.busLoaded=true;toast('Bussen konnten nicht geladen werden');}if(S.account==='admin')render();}
+function busCompress(file){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=()=>no(new Error('Datei konnte nicht gelesen werden'));r.onload=()=>{
+  if(file.type==='application/pdf'){const b=String(r.result).split(',')[1];if(b.length>3.9*1024*1024)return no(new Error('Das PDF ist zu gross (max. ca. 3 MB).'));return ok({mediaType:'application/pdf',data:b,preview:String(r.result)});}
+  const img=new Image();img.onload=()=>{const M=1800,k=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const u=c.toDataURL('image/jpeg',0.85);ok({mediaType:'image/jpeg',data:u.split(',')[1],preview:u});};img.onerror=()=>no(new Error('Das Bild konnte nicht geöffnet werden.'));img.src=String(r.result);};r.readAsDataURL(file);});}
+async function busRead(file){
+  S.busScan={stage:'lesen',name:file.name};render();
+  try{
+    const f=await busCompress(file);Object.assign(S.busScan,f);
+    if(!BUS_ENDPOINT)throw new Error('Auslesen ist in dieser Vorschau nicht verfügbar.');
+    const r=await fetch(BUS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:S.adminCode,mediaType:f.mediaType,data:f.data,fahrzeuge:VEH.filter(v=>v.plate).map(v=>({nr:v.nr,plate:v.plate,model:v.model}))})});
+    const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('Fehler '+r.status));
+    Object.assign(S.busScan,{stage:'fertig',daten:j.daten||{},usage:j.usage||null});
+  }catch(e){Object.assign(S.busScan,{stage:'fehler',err:e.message});}
+  render();
+}
+Object.assign(A,{
+  busreset:()=>{S.busScan=null;render();},
+  busmanual:()=>{S.busScan=Object.assign(S.busScan||{},{stage:'fertig',daten:{lesbar:true,sicherheit:'hoch'}});render();},
+  busrecalc:()=>{const w=document.getElementById('bwho'),n=document.getElementById('bnote');S.busScan.daten=busReadForm();S.busScan.who=undefined;S.busScan.note=n?n.value:'';render();},
+  bussave:async b=>{const sc=S.busScan;if(!sc)return;const d=busReadForm();const m=busMatch(d);const who=document.getElementById('bwho').value;const note=document.getElementById('bnote').value.trim();
+    if(!d.kontrollschild&&!d.datum){toast('Bitte mindestens Kontrollschild und Datum eintragen');return;}
+    const pn=who&&m.cand&&m.cand.who===who?m.cand.pn:(who?(S.history.filter(h=>h.who===who&&h.pn).sort((a,c)=>c.at-a.at)[0]||{}).pn||null:null);
+    const matchTxt=m.st==='zugeteilt'?`Fahrzeug war ${m.cand.who} zugeteilt (Übernahme ${dS(m.prev.at)})`:m.st==='frei'?`Fahrzeug war niemandem zugeteilt (Abgabe ${m.prev.who}, ${dS(m.prev.at)})${m.cand?' – Spur: '+m.cand.who:''}`:m.st==='keineDaten'?'Keine Übernahme vor diesem Zeitpunkt in der App':m.st==='keinFz'?'Kontrollschild nicht in der Flotte':'Datum fehlt';
+    const data=Object.assign({},d,{veh:m.v?m.v.id:null,who:who||null,pn,status:who?'zugewiesen':'pruefen',match:m.st,matchTxt,note:note||null,savedAt:new Date().toISOString(),by:S.user.name});
+    b.disabled=true;
+    try{const id=await rpc('fz_busse_save',{p_code:S.adminCode,p_id:null,p_data:data,p_beleg:sc.preview||null});data.id=id;(S.bus=S.bus||[]).unshift(data);S.busScan=null;toast(who?`Busse ${id} an ${who} zugewiesen`:`Busse ${id} gespeichert – bitte prüfen`);render();}
+    catch(e){console.warn(e);b.disabled=false;toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}},
+  bussel:async b=>{const id=b.dataset.id;S.busSel=id;if(!S.busBeleg||S.busBeleg.id!==id)S.busBeleg=null;render();
+    if(!S.busBeleg){try{const src=await rpc('fz_busse_beleg',{p_code:S.adminCode,p_id:id});S.busBeleg={id,src:src||null};}catch(e){S.busBeleg={id,src:null};}if(S.busSel===id)render();}},
+  busclose:()=>{S.busSel=null;render();},
+  busupd:async b=>{const x=(S.bus||[]).find(y=>y.id===S.busSel);if(!x)return;const who=document.getElementById('bdwho').value||null;
+    const st=b.dataset.st||(who?(x.status==='erledigt'?'erledigt':'zugewiesen'):'pruefen');
+    const pn=who===x.who?x.pn:(who?(S.history.filter(h=>h.who===who&&h.pn).sort((a,c)=>c.at-a.at)[0]||{}).pn||null:null);
+    const nx=Object.assign({},x,{who,pn,status:who?st:'pruefen'});delete nx.created;delete nx.hasBeleg;
+    try{await rpc('fz_busse_save',{p_code:S.adminCode,p_id:x.id,p_data:nx,p_beleg:null});Object.assign(x,nx);toast('Gespeichert');render();}catch(e){console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}}
+});
+app.addEventListener('change',e=>{const i=e.target;if(i&&i.matches&&i.matches('[data-bfile]')&&i.files&&i.files[0])busRead(i.files[0]);});
+app.addEventListener('input',e=>{const i=e.target,sc=S.busScan;if(!sc||!sc.daten||!i)return;if(i.dataset&&i.dataset.bf){const v=i.value.trim();sc.daten[i.dataset.bf]=v===''?null:(i.type==='number'?Number(v):v);}else if(i.id==='bnote')sc.note=i.value;});
+app.addEventListener('change',e=>{const i=e.target;if(i&&i.id==='bwho'&&S.busScan)S.busScan.who=i.value;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.busSel&&!S.modal){S.busSel=null;render();}});
+
 function uTable(){
   const since=Date.now()-30*864e5,q=(S.uq||'').trim().toLowerCase(),f=S.uf||'all';
   const car=n=>{const x=VEH.find(v=>{const a=assignment(v.id);return a&&a.who===n;});return x?`${plate(x)} <small>${esc(x.model)}</small>`:'<span class="muted">–</span>';};
@@ -1911,7 +2042,7 @@ function aModal(){
 }
 
 function renderAdmin(){
-  const V={dash:aDash,meldungen:aMeldungen,fahrzeuge:aFahrzeuge,fahrzeug:aFahrzeug,tanken:aTanken,uebernahmen:aUeb,users:aUsers,settings:aSettings};
+  const V={dash:aDash,meldungen:aMeldungen,fahrzeuge:aFahrzeuge,fahrzeug:aFahrzeug,tanken:aTanken,uebernahmen:aUeb,bussen:aBussen,users:aUsers,settings:aSettings};
   return aShell((V[S.aView]||aDash)());
 }
 function toast(msg){S.toast=msg;render();clearTimeout(toast._t);toast._t=setTimeout(()=>{S.toast=null;const el=document.querySelector('.toast');if(el)el.remove();},2200);}
@@ -2330,6 +2461,7 @@ async function loadAdmin(quiet){
     VEH.forEach(v=>{v.status=(d.fahrzeuge&&d.fahrzeuge[v.id])||'aktiv';v.lastKm=null;});
     S.history.forEach(h=>{const v=VEH.find(x=>x.id===h.veh);if(v&&h.km!=null)v.lastKm=Math.max(v.lastKm||0,h.km);});
     S.dbState='ok';S.dbAt=new Date();
+    if(!quiet||!S.busLoaded)loadBussen();
   }catch(e){console.warn(e);S.dbState='fehler';}
   const a=document.activeElement;const typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');
   if(S.account==='admin'&&!(quiet&&typing))render();
