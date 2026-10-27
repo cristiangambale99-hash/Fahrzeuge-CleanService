@@ -1923,7 +1923,7 @@ function aBussen(){
   else{
     const d=sc.daten,m=busMatch(d),cand=m.cand?m.cand.who:'';
     const pers=busPersons([cand,...(m.spur||[]).map(h=>h.who),...(m.near||[]).map(h=>h.who)]);const sel=sc.who!==undefined?sc.who:cand;
-    scan=`<div class="bscan"><div class="bprev">${sc.mediaType==='application/pdf'?`<div class="bpdf">${ic('clip')}<b>PDF</b><span>${esc(sc.name||'Busse.pdf')}</span></div>`:`<img src="${sc.preview}" alt="Foto der Busse">`}${sc.usage?`<p class="hint">Gelesen mit Claude · ${(sc.usage.input_tokens+sc.usage.output_tokens).toLocaleString('de-CH')} Tokens</p>`:''}</div>
+    scan=`<div class="bscan"><div class="bprev">${sc.mediaType==='application/pdf'?`<div class="bpdf">${ic('clip')}<b>PDF</b><span>${esc(sc.name||'Busse.pdf')}</span></div>`:`<img src="${sc.preview}" alt="Foto der Busse">`}</div>
     <div class="bres">${d.lesbar===false?`<div class="warnbox">Das Dokument sieht nicht wie eine lesbare Busse aus. Bitte die Angaben prüfen.</div>`:''}${d.hinweis?`<p class="hint">Hinweis: ${esc(d.hinweis)}</p>`:''}${d.sicherheit&&d.sicherheit!=='hoch'?`<p class="hint">Lese-Sicherheit: ${esc(d.sicherheit)} – Kontrollschild, Datum und Uhrzeit bitte mit dem Foto vergleichen.</p>`:''}
     <h3 class="h3">Angaben der Busse</h3>${busForm(d)}<button class="secondary sm" data-act="busrecalc" style="width:auto">Zuordnung neu prüfen</button>
     <h3 class="h3" style="margin-top:18px">Wer ist gefahren?</h3>${busMatchHtml(m,d)}
