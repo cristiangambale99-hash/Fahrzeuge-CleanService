@@ -579,6 +579,10 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .drawer dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}.drawer dl.kv dt{color:var(--muted)}.drawer dl.kv dd{margin:0}
 .drawer .field{display:flex;flex-direction:column;gap:4px}.drawer .field span{font-size:13px;font-weight:600}.bbeleg{width:100%;border-radius:10px;border:1px solid var(--line)}
 @media(max-width:760px){.bscan{grid-template-columns:1fr}.bgrid{grid-template-columns:1fr}}
+.bgr{margin:8px 0 4px;padding-left:18px;font-size:13.5px}.bgr li{margin-bottom:3px}
+.btl{list-style:none;margin:8px 0 0;padding:0}.btl li{position:relative;padding:0 0 10px 22px}.btl li:before{content:"";position:absolute;left:6px;top:14px;bottom:0;width:2px;background:var(--line)}.btl li:last-child:before{display:none}
+.btl .bt-d{position:absolute;left:0;top:4px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--line)}.btl li.bt-hit .bt-d{border-color:var(--cs);background:var(--cs-tint)}
+.btl li.bt-busse .bt-d{border-color:var(--danger);background:var(--danger-soft)}.btl li.bt-busse b{color:var(--danger)}.btl small{display:block;color:var(--muted);font-size:12.5px}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1885,26 +1889,65 @@ function busMatch(d){
   const v=busVeh(d.kontrollschild),T=busWhen(d),noTime=!(d&&d.uhrzeit);
   if(!v)return {st:'keinFz',v:null,T};
   if(!T)return {st:'keinDatum',v,T};
-  const evs=S.history.filter(h=>h.veh===v.id&&h.kind==='uebernahme').sort((a,b)=>a.at-b.at);
-  const prev=[...evs].reverse().find(h=>h.at<=T)||null,next=evs.find(h=>h.at>T)||null;
-  const near=S.history.filter(h=>h.veh===v.id&&Math.abs(h.at-T)<=12*36e5).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T)).slice(0,5);
-  const r={v,T,noTime,prev,next,near,spur:[]};
-  if(!prev){r.st='keineDaten';if(next&&next.sub==='rueckgabe'){r.cand={who:next.who,pn:next.pn||null,why:`hat das Fahrzeug am ${dS(next.at)} abgegeben (Übernahme davor fehlt in der App)`};}return r;}
-  if(prev.sub!=='rueckgabe'){r.st='zugeteilt';r.cand={who:prev.who,pn:prev.pn||null,why:`Übernahme am ${dS(prev.at)}${next?(next.sub==='rueckgabe'?` · Abgabe am ${dS(next.at)}`:` · danach übernommen von ${next.who} am ${dS(next.at)} (ohne Abgabe)`):' · noch nicht abgegeben'}`};return r;}
-  r.st='frei';r.spur=S.history.filter(h=>h.veh===v.id&&h.kind!=='uebernahme'&&h.at>prev.at&&(!next||h.at<next.at)).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T));
-  const sp=r.spur[0];if(sp)r.cand={who:sp.who,pn:sp.pn||null,why:`hat in dieser Zeit ohne Übernahme mit dem Fahrzeug ${sp.kind==='tanken'?'getankt':'eine Meldung erfasst'} (${dS(sp.at)})`};
+  const H=36e5,D=24*H;
+  const evs=S.history.filter(h=>h.veh===v.id&&h.at).sort((a,b)=>a.at-b.at);
+  const ueb=evs.filter(h=>h.kind==='uebernahme');
+  const prevU=[...ueb].reverse().find(h=>h.at<=T)||null,nextU=ueb.find(h=>h.at>T)||null;
+  const before=[...evs].reverse().find(h=>h.at<=T)||null,after=evs.find(h=>h.at>T)||null;
+  const nah=noTime?D:3*H;
+  const r={st:'analyse',v,T,noTime,prev:prevU,next:nextU,evs};
+  const pnOf=w=>{const x=[...evs,...S.history].filter(h=>h.who===w&&h.pn).sort((a,b)=>b.at-a.at)[0];return x?x.pn:null;};
+  const fmt=h=>`${h.kind==='uebernahme'?(h.sub==='rueckgabe'?'Abgabe':'Übernahme'):h.kind==='tanken'?'Tankvorgang':h.kind==='abschlepp'?'Abschleppung':'Meldung'} am ${dS(h.at)}`;
+  const rel=h=>{const t=Math.round(Math.abs(h.at-T)/D);return t===0?'am selben Tag':`${t} ${t===1?'Tag':'Tage'} ${h.at<T?'vor':'nach'} der Busse`;};
+  const grund=[];let who=null,level='unbekannt';
+  // 1. Ein Vorgang ganz nah an der Busse: die Person war beim Fahrzeug.
+  const dicht=evs.filter(h=>Math.abs(h.at-T)<=nah).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T));
+  // 2. Offizielle Zuteilung über Übernahme/Abgabe
+  const holder=prevU&&prevU.sub!=='rueckgabe'?prevU:null;
+  if(dicht.length){
+    const h=dicht[0];who=h.who;level='sicher';
+    grund.push(`${fmt(h)} durch ${h.who} – nur ${Math.round(Math.abs(h.at-T)/6e4)<90?Math.round(Math.abs(h.at-T)/6e4)+' Minuten':Math.round(Math.abs(h.at-T)/H)+' Stunden'} ${h.at<T?'vor':'nach'} der Busse.`);
+    if(holder&&holder.who!==who){level='wahrscheinlich';grund.push(`Offiziell war das Fahrzeug seit der Übernahme vom ${dS(holder.at)} ${holder.who} zugeteilt.`);}
+    else if(holder)grund.push(`Passt zur Übernahme vom ${dS(holder.at)} durch ${holder.who}.`);
+  }else if(holder){
+    who=holder.who;level='sicher';
+    grund.push(`Übernahme durch ${holder.who} am ${dS(holder.at)}${nextU?`, ${nextU.sub==='rueckgabe'?'Abgabe':'nächste Übernahme'} erst am ${dS(nextU.at)}`:', seither nicht abgegeben'}. Die Busse liegt genau in diesem Zeitraum.`);
+    const fremd=evs.filter(h=>h.kind!=='uebernahme'&&h.at>holder.at&&(!nextU||h.at<nextU.at)&&h.who!==holder.who);
+    if(fremd.length){level='wahrscheinlich';grund.push(`Achtung: In dieser Zeit hat auch ${[...new Set(fremd.map(h=>h.who))].join(', ')} etwas mit dem Fahrzeug erfasst (${fmt(fremd[0])}).`);}
+  }else{
+    if(prevU&&prevU.sub==='rueckgabe')grund.push(`Das Fahrzeug wurde am ${dS(prevU.at)} von ${prevU.who} abgegeben${nextU?` und erst am ${dS(nextU.at)} von ${nextU.who} wieder übernommen`:''} – offiziell war es niemandem zugeteilt.`);
+    else if(!ueb.length)grund.push('Für dieses Fahrzeug ist noch nie eine Übernahme erfasst – die App wertet deshalb Tankvorgänge und Meldungen aus.');
+    else grund.push(`Vor der Busse ist keine Übernahme erfasst (erste am ${dS(ueb[0].at)}).`);
+    if(before&&after&&before.who===after.who&&after.at-before.at<=21*D){
+      who=before.who;level='wahrscheinlich';grund.push(`${who} hat das Fahrzeug unmittelbar davor und danach benutzt: ${fmt(before)} (${rel(before)}) und ${fmt(after)} (${rel(after)}).`);
+    }else{
+      const near=[before,after].filter(Boolean).sort((a,b)=>Math.abs(a.at-T)-Math.abs(b.at-T))[0];
+      if(near){who=near.who;level=Math.abs(near.at-T)<=7*D?'wahrscheinlich':'unsicher';grund.push(`Nächster erfasster Vorgang: ${fmt(near)} durch ${near.who}, ${rel(near)}.`);}
+    }
+    if(who){const alle=[...new Set(evs.map(h=>h.who))];if(alle.length===1)grund.push(`${who} ist die einzige Person, die dieses Fahrzeug in der App benutzt hat (${evs.length} Vorgänge).`);else{const n=evs.filter(h=>h.who===who).length;grund.push(`${who}: ${n} von ${evs.length} Vorgängen mit diesem Fahrzeug. Ebenfalls erfasst: ${alle.filter(x=>x!==who).slice(0,3).join(', ')}.`);}}
+    const st=busAppStart();if(st&&T<st)grund.push(`Die Busse liegt vor dem Start der Fahrzeug-App (erste Daten am ${st.toLocaleDateString('de-CH')}) – bitte bestätigen lassen.`);
+  }
+  if(noTime)grund.push('Auf der Busse fehlt die Uhrzeit – ausgewertet wird der ganze Tag.');
+  r.verdict={who,pn:who?pnOf(who):null,level,grund};
+  r.cand=who?{who,pn:r.verdict.pn,why:grund[0]}:null;
+  // Zeitstrahl: 3 Vorgänge davor, 3 danach
+  const bi=evs.filter(h=>h.at<=T).slice(-3),ai=evs.filter(h=>h.at>T).slice(0,3);
+  r.timeline=[...bi,{busse:true,at:T},...ai];
+  r.spur=evs.filter(h=>h.kind!=='uebernahme');r.near=dicht;
   return r;
 }
+function busAppStart(){const t=S.history.reduce((m,h)=>h.at<m?h.at:m,new Date(8.64e15));return t.getTime()<8e15?t:null;}
+const BUS_LV={sicher:['Sicher','b-ok'],wahrscheinlich:['Wahrscheinlich','b-warn'],unsicher:['Unsicher','b-warn'],unbekannt:['Nicht bestimmbar','b-warn']};
 function busMatchHtml(m,d){
   if(m.st==='keinFz')return `<div class="bmatch b-warn"><b>Fahrzeug nicht gefunden.</b> Das Kontrollschild «${esc(d.kontrollschild||'unleserlich')}» gehört zu keinem Fahrzeug der Flotte. Bitte das Kontrollschild prüfen.</div>`;
   if(m.st==='keinDatum')return `<div class="bmatch b-warn"><b>Datum fehlt.</b> Ohne Datum der Übertretung kann die App den Fahrer nicht bestimmen. Bitte Datum (und Uhrzeit) eintragen.</div>`;
   const vt=`Nr. ${esc(m.v.nr)} ${esc(m.v.model)} ${esc(m.v.plate||'')}`,when=m.T.toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})+(m.noTime?'':', '+m.T.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})+' Uhr');
-  let main;
-  if(m.st==='zugeteilt')main=`<div class="bmatch b-ok"><span class="bm-k">Gefunden</span><p class="bm-who">${esc(pnTxt(m.cand.who,m.cand.pn))}</p><p>hatte ${vt} am ${when}.</p><p class="bm-s">${esc(m.cand.why)}</p></div>`;
-  else if(m.st==='frei')main=`<div class="bmatch b-warn"><span class="bm-k">Niemandem zugeteilt</span><p>Am ${when} war ${vt} offiziell niemandem zugeteilt – abgegeben von ${esc(pnTxt(m.prev.who,m.prev.pn))} am ${dS(m.prev.at)}${m.next?`, wieder übernommen von ${esc(pnTxt(m.next.who,m.next.pn))} am ${dS(m.next.at)}`:''}.</p>${m.cand?`<p><b>Spur:</b> ${esc(pnTxt(m.cand.who,m.cand.pn))} ${esc(m.cand.why)}.</p>`:'<p>Keine Spur – in dieser Zeit hat niemand etwas mit dem Fahrzeug erfasst.</p>'}</div>`;
-  else main=`<div class="bmatch b-warn"><span class="bm-k">Keine Übernahme vor diesem Zeitpunkt</span><p>Für ${vt} gibt es vor dem ${when} keine Übernahme in der App.</p>${m.cand?`<p><b>Hinweis:</b> ${esc(pnTxt(m.cand.who,m.cand.pn))} ${esc(m.cand.why)}.</p>`:''}</div>`;
-  const near=m.near.length?`<div class="bnear"><span class="bm-k">Rund um diesen Zeitpunkt (±12 Std.)</span><ul>${m.near.map(h=>`<li><b>${esc(evTitle(h))}</b> · ${esc(pnTxt(h.who,h.pn))}<small>${dS(h.at)}${h.km!=null?' · '+fmtKm(h.km)+' km':''}</small></li>`).join('')}</ul></div>`:'';
-  return main+(m.noTime?'<p class="hint">Auf der Busse fehlt die Uhrzeit – die App rechnet mit 12:00 Uhr. Bitte prüfen, ob am selben Tag das Fahrzeug gewechselt hat.</p>':'')+near;
+  const V=m.verdict,[lv,cls]=BUS_LV[V.level];
+  const tl=m.timeline.map(h=>h.busse?`<li class="bt-busse"><span class="bt-d"></span><b>Busse · ${esc(when)}</b></li>`:
+    `<li class="${V.who&&h.who===V.who?'bt-hit':''}"><span class="bt-d"></span><b>${esc(h.kind==='uebernahme'?(h.sub==='rueckgabe'?'Abgabe':'Übernahme'):h.kind==='tanken'?'Tankvorgang':h.kind==='abschlepp'?'Abschleppung':'Meldung')} · ${esc(pnTxt(h.who,h.pn))}</b><small>${dS(h.at)}${h.km!=null?' · '+fmtKm(h.km)+' km':''}</small></li>`).join('');
+  return `<div class="bmatch ${cls}"><span class="bm-k">${V.who?'Gefahren ist':'Fahrer'} · ${lv}</span>${V.who?`<p class="bm-who">${esc(pnTxt(V.who,V.pn))}</p>`:'<p class="bm-who">Nicht bestimmbar</p>'}<p class="bm-s">${vt} · ${esc(when)}</p>
+  <ul class="bgr">${V.grund.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>${V.level!=='sicher'&&V.who?'<p class="bm-s">Bitte kurz bestätigen lassen, bevor die Busse zugewiesen wird.</p>':''}</div>
+  ${m.evs.length?`<div class="bnear"><span class="bm-k">Alle Vorgänge mit diesem Fahrzeug rund um die Busse</span><ul class="btl">${tl}</ul><p class="bm-s" style="margin-top:6px">${m.evs.length} Vorgänge mit diesem Fahrzeug durchsucht (Übernahmen, Abgaben, Tanken, Meldungen).</p></div>`:'<p class="hint">Mit diesem Fahrzeug ist in der App noch nichts erfasst. Bitte den Fahrer von Hand wählen.</p>'}`;
 }
 function busForm(d){
   const f=(k,l,type,ph)=>`<label class="field" for="bf-${k}"><span>${l}</span><input id="bf-${k}" data-bf="${k}" type="${type||'text'}" value="${esc(d[k]==null?'':String(d[k]))}"${ph?` placeholder="${ph}"`:''}${type==='number'?' step="0.05" inputmode="decimal"':''}></label>`;
@@ -1970,8 +2013,8 @@ Object.assign(A,{
   bussave:async b=>{const sc=S.busScan;if(!sc)return;const d=busReadForm();const m=busMatch(d);const who=document.getElementById('bwho').value;const note=document.getElementById('bnote').value.trim();
     if(!d.kontrollschild&&!d.datum){toast('Bitte mindestens Kontrollschild und Datum eintragen');return;}
     const pn=who&&m.cand&&m.cand.who===who?m.cand.pn:(who?(S.history.filter(h=>h.who===who&&h.pn).sort((a,c)=>c.at-a.at)[0]||{}).pn||null:null);
-    const matchTxt=m.st==='zugeteilt'?`Fahrzeug war ${m.cand.who} zugeteilt (Übernahme ${dS(m.prev.at)})`:m.st==='frei'?`Fahrzeug war niemandem zugeteilt (Abgabe ${m.prev.who}, ${dS(m.prev.at)})${m.cand?' – Spur: '+m.cand.who:''}`:m.st==='keineDaten'?'Keine Übernahme vor diesem Zeitpunkt in der App':m.st==='keinFz'?'Kontrollschild nicht in der Flotte':'Datum fehlt';
-    const data=Object.assign({},d,{veh:m.v?m.v.id:null,who:who||null,pn,status:who?'zugewiesen':'pruefen',match:m.st,matchTxt,note:note||null,savedAt:new Date().toISOString(),by:S.user.name});
+    const matchTxt=m.st==='keinFz'?'Kontrollschild nicht in der Flotte':m.st==='keinDatum'?'Datum fehlt':(m.verdict.who?`${BUS_LV[m.verdict.level][0]}: ${m.verdict.who}. `:'Fahrer nicht bestimmbar. ')+m.verdict.grund.join(' ');
+    const data=Object.assign({},d,{veh:m.v?m.v.id:null,who:who||null,pn,status:who?'zugewiesen':'pruefen',match:m.st==='analyse'?m.verdict.level:m.st,matchTxt,note:note||null,savedAt:new Date().toISOString(),by:S.user.name});
     b.disabled=true;
     try{const id=await rpc('fz_busse_save',{p_code:S.adminCode,p_id:null,p_data:data,p_beleg:sc.preview||null});data.id=id;(S.bus=S.bus||[]).unshift(data);S.busScan=null;toast(who?`Busse ${id} an ${who} zugewiesen`:`Busse ${id} gespeichert – bitte prüfen`);render();}
     catch(e){console.warn(e);b.disabled=false;toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}},
