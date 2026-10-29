@@ -583,6 +583,12 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .btl{list-style:none;margin:8px 0 0;padding:0}.btl li{position:relative;padding:0 0 10px 22px}.btl li:before{content:"";position:absolute;left:6px;top:14px;bottom:0;width:2px;background:var(--line)}.btl li:last-child:before{display:none}
 .btl .bt-d{position:absolute;left:0;top:4px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--line)}.btl li.bt-hit .bt-d{border-color:var(--cs);background:var(--cs-tint)}
 .btl li.bt-busse .bt-d{border-color:var(--danger);background:var(--danger-soft)}.btl li.bt-busse b{color:var(--danger)}.btl small{display:block;color:var(--muted);font-size:12.5px}
+.kmfoto{position:relative;border-radius:var(--r-m);overflow:hidden;border:1px solid var(--line);background:#000;margin-bottom:12px}.kmfoto img{display:block;width:100%;max-height:280px;object-fit:contain}
+.kmre{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;width:auto!important;min-height:40px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.94);cursor:pointer}
+.kmbox{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:14px 16px;border-radius:var(--r-m);background:var(--surface-2);border:1px solid var(--line);margin-bottom:10px}
+.kmbox.ok{background:var(--ok-soft);border-color:#CFE8D9}.kmbox.bad{background:var(--danger-soft);border-color:#F0CFCB;color:var(--danger)}.kmbox.warn{background:var(--warn-soft);border-color:#F3DDB8;color:var(--warn)}
+.kmbox span{font-size:14px}.kmbox.bad span{color:var(--ink)}.kml{font-size:12.5px!important;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);font-weight:700}.kmv{font-size:30px!important;font-weight:700;color:var(--ink);line-height:1.1}
+.kmbox:has(.kmspin){flex-direction:row;align-items:center;gap:12px}.kmspin{width:24px;height:24px;border-radius:50%;border:3px solid var(--cs-6);border-top-color:var(--cs);animation:kmsp .8s linear infinite;flex:none}@keyframes kmsp{to{transform:rotate(360deg)}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -624,7 +630,7 @@ ger_title:'Geräte HW / SPEZ',ger_sub:'Rasenmäher, Schneefräsen und andere Mas
 u_definitiv:'Übernahme',u_definitiv_s:'Du übernimmst das Fahrzeug',u_rueckgabe:'Abgabe',u_rueckgabe_s:'Du gibst das Fahrzeug ab',gr_q_ueb:'Warum übernimmst du das Fahrzeug?',gr_q_ab:'Warum gibst du das Fahrzeug ab?',gr_uebergang:'Übergangsnutzung',gr_fix:'Fixe Fahrzeugzuteilung',gr_ferien:'Ferien',gr_krank:'Krankheit',gr_kuendigung:'Kündigung',gr_andere:'Andere',gr_other_l:'Grund',gr_other_ph:'Bitte kurz beschreiben',gr_e:'Bitte wähle einen Grund.',gr_e_other:'Bitte beschreibe den Grund kurz.',gr_s:'Grund',resp_t:'Ab sofort bist du für dieses Fahrzeug verantwortlich',resp_p1:'Bis zur Abgabe haftest du für das Fahrzeug – auch für Schäden und Bussen (z. B. Park- oder Geschwindigkeitsbussen). Melde Schäden sofort in der App.',resp_p2a:'Wenn du das Fahrzeug abgibst, musst du in der App zwingend das Formular',resp_p2b:'ausfüllen.',resp_fine:'Ohne Abgabeformular wird eine Busse von CHF 100.– fällig.',resp_end:'Mit der Abgabe endet deine Verantwortung für dieses Fahrzeug.',
 thanks_short:'Danke, {name}.',
 resp2_t:'Wichtig für das nächste Mal',resp2_p1a:'Wenn du das nächste Mal ein Fahrzeug übernimmst, musst du in der App zwingend das Formular',resp2_p1b:'ausfüllen.',resp2_fine:'Ohne Übernahmeformular wird eine Busse von CHF 100.– fällig.',
-dept_spez:'Spezialreinigung',dept_haus:'Hauswartung',dept_spring:'Springerteam',dept_admin:'Administration',dept_pfs:'Putzfrauenservice',dept_uh:'Unterhaltsreinigung',
+km_q2:"Fotografiere den Kilometerzähler",km_h2:"Die App liest den Kilometerstand automatisch vom Foto ab. Der Gesamtkilometerstand muss gut lesbar sein.",km_shoot:"Tacho fotografieren",km_retake:"Neues Foto",km_reading:"Kilometerstand wird erkannt …",km_found:"Erkannter Kilometerstand",km_auto:"automatisch erkannt",km_fail:"Der Kilometerstand ist auf dem Foto nicht lesbar. Bitte nochmals fotografieren.",km_r_unscharf:"Das Foto ist unscharf – Handy ruhig halten und näher an den Tacho gehen.",km_r_spiegelung:"Auf dem Display spiegelt es – etwas schräger fotografieren.",km_r_zu_weit:"Der Tacho ist zu weit weg – näher herangehen.",km_r_kein_tacho:"Auf dem Foto ist kein Kilometerzähler zu sehen.",km_r_tageszaehler:"Es ist nur der Tageszähler zu sehen – bitte auf den Gesamtkilometerstand umschalten.",km_r_dunkel:"Das Display ist aus – bitte die Zündung einschalten und nochmals fotografieren.",km_implaus:"Erkannt wurden {km} km. Das passt nicht zum letzten Stand von {last} km. Bitte den Tacho nochmals fotografieren.",km_offline:"Die automatische Erkennung ist gerade nicht erreichbar. Bitte den Kilometerstand vom Foto eintippen.",km_photo_e:"Bitte zuerst den Kilometerzähler fotografieren.",km_wait:"Bitte kurz warten, der Kilometerstand wird noch erkannt.",km_fail_e:"Ohne lesbaren Kilometerstand geht es nicht weiter. Bitte nochmals fotografieren.",dept_spez:'Spezialreinigung',dept_haus:'Hauswartung',dept_spring:'Springerteam',dept_admin:'Administration',dept_pfs:'Putzfrauenservice',dept_uh:'Unterhaltsreinigung',
 m_schaden:'Schaden',m_schaden_s:'Unfall, Kratzer, Delle, Glasschaden',m_service:'Service nötig',m_service_s:'Serviceanzeige oder Intervall erreicht',m_fehler:'Fehlermeldung am Fahrzeug',m_fehler_s:'Warnleuchte oder Meldung im Cockpit',m_pneu:'Pneuwechsel nötig',m_pneu_s:'Saisonwechsel oder Pneu beschädigt',m_bremsen:'Bremsen fällig',m_bremsen_s:'Geräusche oder schwache Bremswirkung',
 u_temporaer:'Temporäre Nutzung',u_temporaer_s:'Für einen Einsatz oder einige Tage',
 slot_front:'Front',slot_heck:'Heck',slot_fahrer:'Fahrerseite',slot_beifahrer:'Beifahrerseite',slot_innen:'Innenraum',slot_detail:'Bestehende Schäden / Details',
@@ -681,7 +687,7 @@ ger_title:'Equipment HW / SPEZ',ger_sub:'Lawn mowers, snow blowers and other mac
 u_definitiv:'Takeover',u_definitiv_s:'You take over the vehicle',u_rueckgabe:'Return',u_rueckgabe_s:'You hand the vehicle back',gr_q_ueb:'Why are you taking over the vehicle?',gr_q_ab:'Why are you handing the vehicle back?',gr_uebergang:'Interim use',gr_fix:'Permanent vehicle assignment',gr_ferien:'Holidays',gr_krank:'Illness',gr_kuendigung:'Resignation / termination',gr_andere:'Other',gr_other_l:'Reason',gr_other_ph:'Please describe briefly',gr_e:'Please choose a reason.',gr_e_other:'Please describe the reason briefly.',gr_s:'Reason',resp_t:'From now on you are responsible for this vehicle',resp_p1:'Until you hand it back you are liable for the vehicle – including damage and fines (e.g. parking or speeding fines). Report damage immediately in the app.',resp_p2a:'When you hand the vehicle back, you must fill in the',resp_p2b:'form in the app.',resp_fine:'Without the return form a fine of CHF 100 applies.',resp_end:'With the return, your responsibility for this vehicle ends.',
 thanks_short:'Thank you, {name}.',
 resp2_t:'Important for next time',resp2_p1a:'The next time you take over a vehicle, you must fill in the',resp2_p1b:'form in the app.',resp2_fine:'Without the takeover form a fine of CHF 100 applies.',
-dept_spez:'Special cleaning',dept_haus:'Caretaking',dept_spring:'Relief team',dept_admin:'Administration',dept_pfs:'Home cleaning service',dept_uh:'Maintenance cleaning',
+km_q2:"Take a photo of the odometer",km_h2:"The app reads the mileage from the photo automatically. The total mileage must be clearly readable.",km_shoot:"Photograph the odometer",km_retake:"New photo",km_reading:"Reading mileage …",km_found:"Mileage detected",km_auto:"detected automatically",km_fail:"The mileage cannot be read on the photo. Please take another photo.",km_r_unscharf:"The photo is blurry – hold the phone still and move closer to the odometer.",km_r_spiegelung:"There is a reflection on the display – take the photo at a slight angle.",km_r_zu_weit:"The odometer is too far away – move closer.",km_r_kein_tacho:"No odometer is visible on the photo.",km_r_tageszaehler:"Only the trip meter is visible – please switch to the total mileage.",km_r_dunkel:"The display is off – please switch on the ignition and take another photo.",km_implaus:"Detected {km} km. This does not match the last reading of {last} km. Please photograph the odometer again.",km_offline:"Automatic detection is not available right now. Please type in the mileage from the photo.",km_photo_e:"Please photograph the odometer first.",km_wait:"Please wait a moment, the mileage is still being read.",km_fail_e:"You cannot continue without a readable mileage. Please take another photo.",dept_spez:'Special cleaning',dept_haus:'Caretaking',dept_spring:'Relief team',dept_admin:'Administration',dept_pfs:'Home cleaning service',dept_uh:'Maintenance cleaning',
 m_schaden:'Damage',m_schaden_s:'Accident, scratch, dent, glass damage',m_service:'Service due',m_service_s:'Service indicator or interval reached',m_fehler:'Warning on the vehicle',m_fehler_s:'Warning light or message on the dashboard',m_pneu:'Tyre change due',m_pneu_s:'Seasonal change or damaged tyre',m_bremsen:'Brakes due',m_bremsen_s:'Noises or weak braking',
 u_temporaer:'Temporary use',u_temporaer_s:'For one job or a few days',
 slot_front:'Front',slot_heck:'Rear',slot_fahrer:'Driver side',slot_beifahrer:'Passenger side',slot_innen:'Interior',slot_detail:'Existing damage / details',
@@ -738,7 +744,7 @@ ger_title:'Aparatos HW / SPEZ',ger_sub:'Cortacéspedes, quitanieves y otras máq
 u_definitiv:'Recogida',u_definitiv_s:'Te haces cargo del vehículo',u_rueckgabe:'Devolución',u_rueckgabe_s:'Devuelves el vehículo',gr_q_ueb:'¿Por qué te haces cargo del vehículo?',gr_q_ab:'¿Por qué devuelves el vehículo?',gr_uebergang:'Uso transitorio',gr_fix:'Asignación fija del vehículo',gr_ferien:'Vacaciones',gr_krank:'Enfermedad',gr_kuendigung:'Despido / baja',gr_andere:'Otro',gr_other_l:'Motivo',gr_other_ph:'Descríbelo brevemente',gr_e:'Elige un motivo.',gr_e_other:'Describe brevemente el motivo.',gr_s:'Motivo',resp_t:'A partir de ahora eres responsable de este vehículo',resp_p1:'Hasta la devolución respondes por el vehículo, también por daños y multas (p. ej. de aparcamiento o velocidad). Informa de los daños enseguida en la app.',resp_p2a:'Cuando devuelvas el vehículo, es obligatorio rellenar en la app el formulario',resp_p2b:'.',resp_fine:'Sin el formulario de devolución se aplica una multa de CHF 100.',resp_end:'Con la devolución termina tu responsabilidad sobre este vehículo.',
 thanks_short:'Gracias, {name}.',
 resp2_t:'Importante para la próxima vez',resp2_p1a:'La próxima vez que recojas un vehículo, es obligatorio rellenar en la app el formulario',resp2_p1b:'.',resp2_fine:'Sin el formulario de recogida se aplica una multa de CHF 100.',
-dept_spez:'Limpieza especial',dept_haus:'Conserjería',dept_spring:'Equipo volante',dept_admin:'Administración',dept_pfs:'Servicio de limpieza doméstica',dept_uh:'Limpieza de mantenimiento',
+km_q2:"Haz una foto del cuentakilómetros",km_h2:"La app lee el kilometraje de la foto automáticamente. El kilometraje total debe verse con claridad.",km_shoot:"Fotografiar el cuentakilómetros",km_retake:"Nueva foto",km_reading:"Leyendo el kilometraje …",km_found:"Kilometraje detectado",km_auto:"detectado automáticamente",km_fail:"El kilometraje no se puede leer en la foto. Haz otra foto, por favor.",km_r_unscharf:"La foto está borrosa: mantén el móvil quieto y acércate más al cuentakilómetros.",km_r_spiegelung:"Hay un reflejo en la pantalla: haz la foto un poco de lado.",km_r_zu_weit:"El cuentakilómetros está demasiado lejos: acércate más.",km_r_kein_tacho:"En la foto no se ve ningún cuentakilómetros.",km_r_tageszaehler:"Solo se ve el cuentakilómetros parcial: cambia al kilometraje total, por favor.",km_r_dunkel:"La pantalla está apagada: enciende el contacto y haz otra foto.",km_implaus:"Se han detectado {km} km. No coincide con el último valor de {last} km. Vuelve a fotografiar el cuentakilómetros, por favor.",km_offline:"La detección automática no está disponible ahora. Escribe el kilometraje que se ve en la foto.",km_photo_e:"Primero fotografía el cuentakilómetros, por favor.",km_wait:"Espera un momento, todavía se está leyendo el kilometraje.",km_fail_e:"Sin un kilometraje legible no se puede continuar. Haz otra foto, por favor.",dept_spez:'Limpieza especial',dept_haus:'Conserjería',dept_spring:'Equipo volante',dept_admin:'Administración',dept_pfs:'Servicio de limpieza doméstica',dept_uh:'Limpieza de mantenimiento',
 m_schaden:'Daño',m_schaden_s:'Accidente, rayón, abolladura, daño en cristal',m_service:'Servicio necesario',m_service_s:'Indicador de servicio o intervalo alcanzado',m_fehler:'Aviso en el vehículo',m_fehler_s:'Testigo o mensaje en el cuadro de mandos',m_pneu:'Cambio de neumáticos',m_pneu_s:'Cambio de temporada o neumático dañado',m_bremsen:'Revisar frenos',m_bremsen_s:'Ruidos o frenada débil',
 u_temporaer:'Uso temporal',u_temporaer_s:'Para un servicio o unos días',
 slot_front:'Parte delantera',slot_heck:'Parte trasera',slot_fahrer:'Lado del conductor',slot_beifahrer:'Lado del acompañante',slot_innen:'Interior',slot_detail:'Daños existentes / detalles',
@@ -795,7 +801,7 @@ ger_title:'Equipamentos HW / SPEZ',ger_sub:'Corta-relvas, limpa-neves e outras m
 u_definitiv:'Receção',u_definitiv_s:'Ficas com o veículo',u_rueckgabe:'Devolução',u_rueckgabe_s:'Devolves o veículo',gr_q_ueb:'Porque ficas com o veículo?',gr_q_ab:'Porque devolves o veículo?',gr_uebergang:'Uso transitório',gr_fix:'Atribuição fixa do veículo',gr_ferien:'Férias',gr_krank:'Doença',gr_kuendigung:'Demissão / despedimento',gr_andere:'Outro',gr_other_l:'Motivo',gr_other_ph:'Descreve brevemente',gr_e:'Escolhe um motivo.',gr_e_other:'Descreve brevemente o motivo.',gr_s:'Motivo',resp_t:'A partir de agora és responsável por este veículo',resp_p1:'Até à devolução respondes pelo veículo, também por danos e multas (p. ex. de estacionamento ou velocidade). Comunica danos logo na app.',resp_p2a:'Quando devolveres o veículo, tens obrigatoriamente de preencher na app o formulário',resp_p2b:'.',resp_fine:'Sem o formulário de devolução aplica-se uma multa de CHF 100.',resp_end:'Com a devolução termina a tua responsabilidade por este veículo.',
 thanks_short:'Obrigado, {name}.',
 resp2_t:'Importante para a próxima vez',resp2_p1a:'Da próxima vez que ficares com um veículo, tens obrigatoriamente de preencher na app o formulário',resp2_p1b:'.',resp2_fine:'Sem o formulário de receção aplica-se uma multa de CHF 100.',
-dept_spez:'Limpeza especial',dept_haus:'Zeladoria',dept_spring:'Equipa volante',dept_admin:'Administração',dept_pfs:'Serviço de limpeza doméstica',dept_uh:'Limpeza de manutenção',
+km_q2:"Tira uma foto do conta-quilómetros",km_h2:"A app lê os quilómetros da foto automaticamente. Os quilómetros totais têm de estar bem legíveis.",km_shoot:"Fotografar o conta-quilómetros",km_retake:"Nova foto",km_reading:"A ler os quilómetros …",km_found:"Quilómetros detetados",km_auto:"detetado automaticamente",km_fail:"Os quilómetros não se conseguem ler na foto. Tira outra foto, por favor.",km_r_unscharf:"A foto está desfocada: segura o telemóvel quieto e aproxima-te do conta-quilómetros.",km_r_spiegelung:"Há um reflexo no ecrã: tira a foto um pouco de lado.",km_r_zu_weit:"O conta-quilómetros está demasiado longe: aproxima-te.",km_r_kein_tacho:"Não se vê nenhum conta-quilómetros na foto.",km_r_tageszaehler:"Só se vê o contador parcial: muda para os quilómetros totais, por favor.",km_r_dunkel:"O ecrã está desligado: liga a ignição e tira outra foto.",km_implaus:"Foram detetados {km} km. Não corresponde ao último valor de {last} km. Volta a fotografar o conta-quilómetros, por favor.",km_offline:"A deteção automática não está disponível neste momento. Escreve os quilómetros que se veem na foto.",km_photo_e:"Fotografa primeiro o conta-quilómetros, por favor.",km_wait:"Espera um momento, os quilómetros ainda estão a ser lidos.",km_fail_e:"Sem quilómetros legíveis não é possível continuar. Tira outra foto, por favor.",dept_spez:'Limpeza especial',dept_haus:'Zeladoria',dept_spring:'Equipa volante',dept_admin:'Administração',dept_pfs:'Serviço de limpeza doméstica',dept_uh:'Limpeza de manutenção',
 m_schaden:'Dano',m_schaden_s:'Acidente, risco, amolgadela, vidro danificado',m_service:'Revisão necessária',m_service_s:'Indicador de revisão ou intervalo atingido',m_fehler:'Aviso no veículo',m_fehler_s:'Luz de aviso ou mensagem no painel',m_pneu:'Troca de pneus necessária',m_pneu_s:'Troca de estação ou pneu danificado',m_bremsen:'Travões a rever',m_bremsen_s:'Ruídos ou travagem fraca',
 u_temporaer:'Uso temporário',u_temporaer_s:'Para um serviço ou alguns dias',
 slot_front:'Frente',slot_heck:'Traseira',slot_fahrer:'Lado do condutor',slot_beifahrer:'Lado do passageiro',slot_innen:'Interior',slot_detail:'Danos existentes / detalhes',
@@ -852,7 +858,7 @@ ger_title:'Apparecchi HW / SPEZ',ger_sub:'Tosaerba, spazzaneve e altre macchine'
 u_definitiv:'Presa in consegna',u_definitiv_s:'Prendi in consegna il veicolo',u_rueckgabe:'Riconsegna',u_rueckgabe_s:'Riconsegni il veicolo',gr_q_ueb:'Perché prendi in consegna il veicolo?',gr_q_ab:'Perché riconsegni il veicolo?',gr_uebergang:'Uso transitorio',gr_fix:'Assegnazione fissa del veicolo',gr_ferien:'Vacanze',gr_krank:'Malattia',gr_kuendigung:'Disdetta / licenziamento',gr_andere:'Altro',gr_other_l:'Motivo',gr_other_ph:'Descrivi brevemente',gr_e:'Scegli un motivo.',gr_e_other:'Descrivi brevemente il motivo.',gr_s:'Motivo',resp_t:'Da adesso sei responsabile di questo veicolo',resp_p1:'Fino alla riconsegna rispondi del veicolo, anche per danni e multe (p. es. per parcheggio o velocità). Segnala subito i danni nell’app.',resp_p2a:'Quando riconsegni il veicolo devi obbligatoriamente compilare nell’app il modulo',resp_p2b:'.',resp_fine:'Senza modulo di riconsegna è prevista una multa di CHF 100.',resp_end:'Con la riconsegna termina la tua responsabilità per questo veicolo.',
 thanks_short:'Grazie, {name}.',
 resp2_t:'Importante per la prossima volta',resp2_p1a:'La prossima volta che prendi in consegna un veicolo devi obbligatoriamente compilare nell’app il modulo',resp2_p1b:'.',resp2_fine:'Senza modulo di presa in consegna è prevista una multa di CHF 100.',
-dept_spez:'Pulizie speciali',dept_haus:'Custodia immobili',dept_spring:'Squadra jolly',dept_admin:'Amministrazione',dept_pfs:'Servizio pulizie domestiche',dept_uh:'Pulizia di manutenzione',
+km_q2:"Fotografa il contachilometri",km_h2:"L’app legge automaticamente i chilometri dalla foto. Il chilometraggio totale deve essere ben leggibile.",km_shoot:"Fotografa il contachilometri",km_retake:"Nuova foto",km_reading:"Lettura dei chilometri …",km_found:"Chilometraggio rilevato",km_auto:"rilevato automaticamente",km_fail:"Il chilometraggio non è leggibile sulla foto. Scatta un’altra foto, per favore.",km_r_unscharf:"La foto è sfocata: tieni fermo il telefono e avvicinati al contachilometri.",km_r_spiegelung:"Il display riflette: scatta la foto leggermente di lato.",km_r_zu_weit:"Il contachilometri è troppo lontano: avvicinati.",km_r_kein_tacho:"Sulla foto non si vede nessun contachilometri.",km_r_tageszaehler:"Si vede solo il contachilometri parziale: passa al chilometraggio totale, per favore.",km_r_dunkel:"Il display è spento: accendi il quadro e scatta un’altra foto.",km_implaus:"Rilevati {km} km. Non corrisponde all’ultimo valore di {last} km. Fotografa di nuovo il contachilometri, per favore.",km_offline:"Il rilevamento automatico non è disponibile al momento. Inserisci i chilometri che vedi sulla foto.",km_photo_e:"Prima fotografa il contachilometri, per favore.",km_wait:"Attendi un momento, i chilometri vengono ancora letti.",km_fail_e:"Senza un chilometraggio leggibile non si può continuare. Scatta un’altra foto, per favore.",dept_spez:'Pulizie speciali',dept_haus:'Custodia immobili',dept_spring:'Squadra jolly',dept_admin:'Amministrazione',dept_pfs:'Servizio pulizie domestiche',dept_uh:'Pulizia di manutenzione',
 m_schaden:'Danno',m_schaden_s:'Incidente, graffio, ammaccatura, vetro danneggiato',m_service:'Servizio necessario',m_service_s:'Spia di servizio o intervallo raggiunto',m_fehler:'Avviso sul veicolo',m_fehler_s:'Spia o messaggio sul cruscotto',m_pneu:'Cambio gomme necessario',m_pneu_s:'Cambio stagionale o gomma danneggiata',m_bremsen:'Freni da controllare',m_bremsen_s:'Rumori o frenata debole',
 u_temporaer:'Uso temporaneo',u_temporaer_s:'Per un intervento o qualche giorno',
 slot_front:'Anteriore',slot_heck:'Posteriore',slot_fahrer:'Lato guida',slot_beifahrer:'Lato passeggero',slot_innen:'Interno',slot_detail:'Danni esistenti / dettagli',
@@ -1081,16 +1087,31 @@ const photoLabel=g=>({bilderPneu:t('m_pneu'),receipt:t('sum_receipt'),bilder:t('
 /* ---------- Schritte ---------- */
 const STEPS={
   km:{
-    q:()=>t('km_q'),
-    body:d=>{const v=veh();return bigInput('km',d.km,'km','numeric',v.lastKm!=null?t('km_ph',{n:v.lastKm+85}):'0')+`<p class="hint">${v.lastKm!=null?`${t('km_last')} <b class="num">${fmtKm(v.lastKm)} km</b>`:t('km_none')}</p>`;},
-    validate:d=>{const n=num(d.km),v=veh();
+    q:()=>t('km_q2'), hint:()=>t('km_h2'),
+    body:d=>{const v=veh(),R=d.kmR||{},a=P('tacho');
+      const last=v.lastKm!=null?`<p class="hint">${t('km_last')} <b class="num">${fmtKm(v.lastKm)} km</b></p>`:'';
+      if(!a.length)return photoBlock('tacho',false,t('km_shoot'))+last;
+      const thumb=`<div class="kmfoto"><img src="${a[0]}" alt="${esc(t('km_q2'))}"><label class="secondary kmre"><input type="file" accept="image/*" capture="environment" data-photo="tacho" data-replace="1" class="vh">${ic('camera')}${t('km_retake')}</label></div>`;
+      let box='';
+      if(R.st==='lesen')box=`<div class="kmbox"><span class="kmspin" aria-hidden="true"></span><b>${t('km_reading')}</b></div>`;
+      else if(R.st==='ok')box=`<div class="kmbox ok"><span class="kml">${t('km_found')}</span><span class="kmv num">${fmtKm(R.km)} km</span></div>`;
+      else if(R.st==='fail')box=`<div class="kmbox bad" role="alert"><b>${t('km_fail')}</b>${R.grund&&R.grund!=='andere'?`<span>${t('km_r_'+R.grund)}</span>`:''}</div>`;
+      else if(R.st==='implaus')box=`<div class="kmbox bad" role="alert"><b>${t('km_implaus',{km:fmtKm(R.km),last:fmtKm(v.lastKm)})}</b></div>`;
+      else if(R.st==='offline')box=`<div class="kmbox warn"><b>${t('km_offline')}</b></div>`+bigInput('km',d.km,'km','numeric',v.lastKm!=null?t('km_ph',{n:v.lastKm+85}):'0');
+      return thumb+box+last;},
+    validate:d=>{const R=d.kmR||{};
+      if(!P('tacho').length)return t('km_photo_e');
+      if(R.st==='lesen')return t('km_wait');
+      if(R.st==='ok')return null;
+      if(R.st==='fail'||R.st==='implaus'||!R.st)return t('km_fail_e');
+      const n=num(d.km),v=veh();
       if(isNaN(n))return t('km_e_num');
       if(!Number.isInteger(n))return t('km_e_int');
       if(S.flow==='uebernahme')return null;
       if(v.lastKm!=null&&n<v.lastKm)return t('km_e_low',{km:fmtKm(v.lastKm)});
       if(v.lastKm!=null&&n-v.lastKm>3000&&d._kmOk!==n){d._kmOk=n;return t('km_e_jump',{d:fmtKm(n-v.lastKm)});}
       return null;},
-    sum:d=>[[t('sum_km'),fmtKm(num(d.km))+' km']]
+    sum:d=>{const a=P('tacho');return [[t('sum_km'),fmtKm(num(d.km))+' km'+((d.kmR||{}).st==='ok'?' · '+t('km_auto'):'')],[t('tacho_s'),photosTxt(a.length),a]];}
   },
   fuel:{
     q:()=>t('fuel_q'),
@@ -1284,7 +1305,7 @@ function stepsFor(){
     if(k==='schaden')mid=['ort','dmg','bilder','unfall',...(d.unfall==='ja'?['unfalldetails']:[])];
     else if(k==='fehler')mid=['flt','bilderOpt'];
     else if(k==='pneu')mid=['bilderPneu','bemerkung'];
-    else if(k==='service')mid=[...(tr?[]:['tacho']),'bemerkung'];
+    else if(k==='service')mid=['bemerkung'];
     else if(k)mid=['bemerkung'];
     return ['mtype',...(tr?[]:['km']),...mid,'summary'];
   }
@@ -1524,6 +1545,29 @@ function kmCompare(r,km){
 }
 function pnTxt(n,pn){return pn?`${n} (PN ${pn})`:n;}
 function kmSpurTxt(x){const d=new Date(x.at);return `${x.kind==='tanken'?'Tankvorgang':x.kind==='meldung'?'Meldung':'Vorgang'} von ${pnTxt(x.who,x.pn)} am ${d.toLocaleDateString('de-CH')}${x.km!=null?' · '+fmtKm(x.km)+' km':''}`;}
+/* Kilometerstand vom Tachofoto mit Claude erkennen */
+const KM_ENDPOINT=location.protocol==='file:'?'':'/api/km-lesen';
+async function kmRead(){
+  const d=S.data,v=veh(),foto=P('tacho')[0];if(!foto)return;
+  const tok={};d.kmR={st:'lesen',tok};d.km='';hideErrSafe();render();
+  let R;
+  try{
+    if(!KM_ENDPOINT)throw new Error('offline');
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),25000);
+    const r=await fetch(KM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({pnh:S.user&&S.user.pnh,mediaType:'image/jpeg',data:foto.split(',')[1]})});
+    clearTimeout(tm);
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok)throw new Error(j.error||('HTTP '+r.status));
+    if(j.lesbar&&Number.isInteger(j.km)){
+      const plaus=v.lastKm==null||(j.km>=v.lastKm-(S.flow==='uebernahme'?50:0)&&j.km-v.lastKm<=5000);
+      if(plaus||d._kmPrev===j.km)R={st:'ok',km:j.km};else{d._kmPrev=j.km;R={st:'implaus',km:j.km};}
+    }else R={st:'fail',grund:j.grund||'andere'};
+  }catch(e){console.warn(e);R={st:'offline'};}
+  if(!S.data||S.data.kmR!==d.kmR||d.kmR.tok!==tok)return;
+  d.kmR=R;if(R.st==='ok')d.km=String(R.km);
+  if(stepsFor()[S.idx]==='km')render();
+}
+function hideErrSafe(){try{hideErr();}catch(e){}}
 function submit(){
   if(S.submitting)return;
   S.submitting=true;render();
@@ -1532,6 +1576,7 @@ function submit(){
     const rec={id:'FZ-2026-'+String(++S.seq).padStart(5,'0'),kind:S.flow,veh:v.id,who:S.user.name,at:new Date(),km,prio:null};
     if(TR.orig)rec.orig=TR.orig;
     if(S.user&&S.user.pn)rec.pn=S.user.pn;
+    if(km!=null&&P('tacho').length){rec.kmQuelle=(S.data.kmR||{}).st==='ok'?'foto':'manuell';if(S.flow!=='meldung')rec.tachoPhoto=P('tacho')[0];}
     let notice={cls:'normal',key:'nNormal'};
     if(S.flow==='tanken'){
       Object.assign(rec,{fuel:d.fuel,liter:num(d.liter),chf:num(d.chf),dept:d.dept,photos:P('receipt').slice()});if(isGeraet(v))rec.geraet=(d.geraet||'').trim();
@@ -1600,6 +1645,7 @@ app.addEventListener('change',async e=>{
     const imgs=(await Promise.all(files.map(shrink))).filter(Boolean);
     if(!imgs.length){showErr(t('photoErr'));return;}
     if(x.dataset.replace)S.data.photos[g]=imgs.slice(0,1);else P(g).push(...imgs);
+    if(g==='tacho'&&stepsFor()[S.idx]==='km'){S.data.photos.tacho=P('tacho').slice(-1);kmRead();}
     render();}
   else if(x.dataset.file){const f=x.files&&x.files[0];if(!f)return;
     if(f.type==='application/pdf'){if(f.size>15e6){showErr(t('photoErr'));return;}const r=new FileReader();r.onload=()=>{S.data[x.dataset.file]={name:f.name,type:f.type,data:r.result};hideErr();render();};r.readAsDataURL(f);}
@@ -2220,7 +2266,8 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
 
   section(v.kind==='geraet'?'Gerät':'Fahrzeug');
   if(v.kind==='geraet'){kv('Bereich',v.model);kv('Gerät',(rec.geraet||'–')+OR('geraet'));}else{kv('Fahrzeug',`${v.model} (Nr. ${v.nr})`);kv('Kennzeichen',v.plate);}
-  if(rec.km!=null)kv('Kilometerstand',fmtKm(rec.km)+' km');
+  if(rec.km!=null)kv('Kilometerstand',fmtKm(rec.km)+' km'+(rec.kmQuelle==='foto'?' (automatisch vom Tachofoto erkannt)':rec.kmQuelle==='manuell'?' (von Hand eingegeben, Erkennung nicht verfügbar)':''));
+  if(rec.tachoPhoto){section('Tachofoto',170);await photos([{src:rec.tachoPhoto,label:'Kilometerzähler'}]);}
 
   if(rec.kind==='tanken'){
     const e=rec.fuel==='strom',u=e?'kWh':'Liter';
@@ -2455,7 +2502,7 @@ function revive(r){
 function lightRec(r){
   const x=JSON.parse(JSON.stringify(r));
   x.nPh=(r.photos||[]).length+(r.keyPhotos||[]).length;
-  x.photos=[];x.keyPhotos=[];x.slotPhotos={};
+  x.photos=[];x.keyPhotos=[];x.slotPhotos={};if(x.tachoPhoto){x.nPh=(x.nPh||0)+1;delete x.tachoPhoto;}
   if(x.third&&x.third.file)x.third.file={name:x.third.file.name,type:x.third.file.type};
   x._light=true;return x;
 }
