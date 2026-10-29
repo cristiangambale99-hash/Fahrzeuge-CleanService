@@ -1554,7 +1554,7 @@ async function kmRead(){
   try{
     if(!KM_ENDPOINT)throw new Error('offline');
     const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),25000);
-    const r=await fetch(KM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({pnh:S.user&&S.user.pnh,mediaType:'image/jpeg',data:foto.split(',')[1]})});
+    const r=await fetch(KM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({pnh:S.user&&S.user.pnh,mediaType:'image/jpeg',data:foto.split(',')[1],lastKm:Number.isInteger(v.lastKm)?v.lastKm:null,fahrzeug:v.model||''})});
     clearTimeout(tm);
     const j=await r.json().catch(()=>({}));
     if(!r.ok||!j.ok)throw new Error(j.error||('HTTP '+r.status));
