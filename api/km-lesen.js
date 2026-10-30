@@ -42,6 +42,20 @@ const SCHEMA = {
 };
 
 const istKm = n => Number.isInteger(n) && n >= 0 && n < 3000000;
+const NIE_KM = ['geschwindigkeit', 'uhrzeit', 'temperatur', 'verbrauch'];
+
+// Ganze, lesbare Zahlen vom Foto, die der Gesamtstand sein könnten – zur Auswahl in der App,
+// falls die automatische Wahl nicht eindeutig ist. Wahrscheinlichste zuerst.
+function kandidaten(x, lastKm) {
+  const zahlen = Array.isArray(x.zahlen) ? x.zahlen : [];
+  const rang = { gesamt: 0, andere: 1, service: 3, reichweite: 3, tageszaehler: 4 };
+  const passt = n => lastKm == null || (n >= lastKm - 50 && n - lastKm <= 20000);
+  const out = [];
+  zahlen.filter(z => z.lesbar && Number.isInteger(z.wert) && istKm(z.wert) && !NIE_KM.includes(z.art) && passt(z.wert))
+    .sort((a, b) => (rang[a.art] ?? 2) - (rang[b.art] ?? 2))
+    .forEach(z => { if (!out.some(o => o.km === z.wert)) out.push({ km: z.wert, text: String(z.text || '').slice(0, 40), art: z.art }); });
+  return out.slice(0, 4);
+}
 
 // Wählt den Gesamtkilometerstand – zuerst Claudes Wahl, sonst aus den erkannten Zahlen.
 function auswahl(x, lastKm) {
@@ -59,6 +73,12 @@ function auswahl(x, lastKm) {
     const kand = zahlen.filter(z => z.lesbar && Number.isInteger(z.wert) && !ausschluss.includes(z.art) && passt(z.wert) && z.wert >= 1000);
     const werte = [...new Set(kand.map(z => z.wert))];
     if (werte.length === 1) return { km: werte[0], sicherheit: 'mittel', weg: 'letzterStand' };
+  }
+  // 3b. Ohne letzten Stand (neues Fahrzeug): genau eine ganze, lesbare Zahl, die als Gesamtstand erkannt oder nicht zugeordnet ist
+  if (lastKm == null) {
+    const kand = zahlen.filter(z => z.lesbar && Number.isInteger(z.wert) && istKm(z.wert) && (z.art === 'gesamt' || z.art === 'andere'));
+    const werte = [...new Set(kand.map(z => z.wert))];
+    if (werte.length === 1) return { km: werte[0], sicherheit: 'mittel', weg: 'einzige' };
   }
   // 4. Claude hat eine Zahl, die aber nicht zum letzten Stand passt – trotzdem zurückgeben, die App fragt nach
   if (istKm(x.km) && x.sicherheit !== 'tief') return { km: x.km, sicherheit: 'mittel', weg: 'claude_unplausibel' };
@@ -79,17 +99,20 @@ module.exports = async (req, res) => {
   if (String(p.data).length > MAX_BASE64) return res.status(413).json({ error: 'Foto zu gross' });
   const lastKm = Number.isInteger(p.lastKm) && p.lastKm >= 0 ? p.lastKm : null;
   const fahrzeug = String(p.fahrzeug || '').slice(0, 80);
+  const elektro = p.antrieb === 'strom' || /zoe|e-tech|electric|elektro|ev\b/i.test(fahrzeug);
 
   const body = {
     model: process.env.KM_MODEL || 'claude-sonnet-5',
     max_tokens: 700,
     system: 'Du liest auf Fotos von Fahrzeug-Armaturenbrettern den GESAMTKILOMETERSTAND (Odometer) ab. ' +
       'Auf vielen Displays stehen mehrere Zahlen. Gehe so vor: 1) Liste ALLE sichtbaren Zahlen mit ihrer Bedeutung auf. ' +
-      '2) Bestimme, welche davon der Gesamtkilometerstand ist. Merkmale: meist die grösste km-Zahl, 4 bis 6 Stellen, ganze Zahl ohne Nachkommastelle, oft mit "km", "ODO" oder "Gesamt" beschriftet oder ohne Beschriftung unten im Display. ' +
-      'NICHT der Gesamtstand sind: Tageszähler (TRIP, A/B, oft mit Nachkommastelle), Reichweite (Tanksäulen-Symbol, "Reichweite", "Range", meist unter 1500 km), Service-Intervall (Schraubenschlüssel, "Service in ..."), Geschwindigkeit, Uhrzeit, Aussentemperatur, Verbrauch. ' +
+      '2) Bestimme, welche davon der Gesamtkilometerstand ist. Merkmale: ganze Zahl ohne Nachkommastelle mit "km", oft mit "ODO" oder "Gesamt" beschriftet oder ohne Beschriftung im Display. Bei älteren Fahrzeugen meist 5 bis 6 Stellen; bei NEUEN Fahrzeugen kann er sehr klein sein (z. B. 127 km) – eine kurze Zahl ist kein Grund, sie auszuschliessen. ' +
+      'Typisch bei Renault, Dacia, Twingo, Zoe und vielen Elektroautos: Tageszähler mit Nachkommastelle (z. B. 121.5 km), Reichweite mit Pfeil-, Stecker- oder Tanksäulen-Symbol, Gesamtstand als ganze Zahl (z. B. in der Mitte oder oben im Ring). ' +
+      'NICHT der Gesamtstand sind: Tageszähler (TRIP, A/B, oft mit Nachkommastelle), Reichweite (Tanksäulen-, Stecker-, Batterie- oder Pfeil-Symbol, "Reichweite", "Range", "Autonomie", bei Elektroautos meist unter 600 km), Service-Intervall (Schraubenschlüssel, "Service in ..."), Geschwindigkeit, Uhrzeit, Aussentemperatur, Verbrauch. ' +
       'Ablesen: Lies jede Ziffer genau so, wie sie auf dem Foto steht. Rate keine Ziffern. Ist der Gesamtstand nicht vollständig lesbar, setze km=null und nenne den Grund. ' +
       (lastKm != null ? `Hilfe zur Auswahl: Der letzte bekannte Kilometerstand dieses Fahrzeugs war ${lastKm} km; der Gesamtstand ist in der Regel gleich oder etwas höher. Nutze das nur, um die richtige Zahl auszuwählen – ändere nie abgelesene Ziffern, damit sie passen. ` : '') +
-      (fahrzeug ? `Fahrzeug: ${fahrzeug}. ` : '') +
+      (fahrzeug ? `Fahrzeug: ${fahrzeug}${elektro ? ' (Elektroauto)' : ''}. ` : '') +
+      (lastKm == null ? 'Für dieses Fahrzeug ist noch kein Kilometerstand erfasst; es kann ein neues Fahrzeug mit sehr kleinem Stand sein. ' : '') +
       'Antworte ausschliesslich über das Werkzeug km_stand.',
     tools: [{ name: 'km_stand', description: 'Alle sichtbaren Zahlen und der Gesamtkilometerstand', input_schema: SCHEMA }],
     tool_choice: { type: 'tool', name: 'km_stand' },
@@ -113,8 +136,9 @@ module.exports = async (req, res) => {
     const a = auswahl(x, lastKm);
     const zahlen = (Array.isArray(x.zahlen) ? x.zahlen : []).slice(0, 12).map(z => ({ text: String(z.text || '').slice(0, 40), art: z.art }));
     if (a) return res.status(200).json({ ok: true, lesbar: true, km: a.km, sicherheit: a.sicherheit, weg: a.weg, zahlen });
+    const kand = kandidaten(x, lastKm);
     const nurTrip = zahlen.length && zahlen.every(z => z.art !== 'gesamt') && zahlen.some(z => z.art === 'tageszaehler');
-    return res.status(200).json({ ok: true, lesbar: false, km: null, sicherheit: x.sicherheit || null, grund: GRUENDE.includes(x.grund) ? x.grund : (nurTrip ? 'tageszaehler' : 'andere'), zahlen });
+    return res.status(200).json({ ok: true, lesbar: false, km: null, sicherheit: x.sicherheit || null, grund: GRUENDE.includes(x.grund) ? x.grund : (nurTrip ? 'tageszaehler' : 'andere'), kandidaten: kand, zahlen });
   } catch (e) {
     return res.status(502).json({ error: 'Claude API nicht erreichbar' });
   }
