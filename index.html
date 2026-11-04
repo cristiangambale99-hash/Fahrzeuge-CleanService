@@ -1041,7 +1041,7 @@ const MTYPES={
   bremsen:{icon:'brake',tone:'warn',prio:'hoch'}
 };
 const UTYPES={definitiv:{dot:'green'},rueckgabe:{dot:'red'}};
-const UGRUND={definitiv:['uebergang','fix','andere'],rueckgabe:['ferien','krank','kuendigung','andere']};
+const UGRUND={definitiv:['uebergang','fix'],rueckgabe:['ferien','krank','kuendigung','andere']};
 const reqSlot=s=>s.req&&!(s.k==='innen'&&isTrailer(veh()));
 const SLOTS=[{k:'front',req:true},{k:'heck',req:true},{k:'fahrer',req:true},{k:'beifahrer',req:true},{k:'innen',req:true},{k:'detail',req:false}];
 const ZUB=['abgeschlossen','parkkarte','tankkarte','ausweis'];
