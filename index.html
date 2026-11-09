@@ -1399,7 +1399,8 @@ function stepsFor(){
     else if(k)mid=['bemerkung'];
     return ['mtype',...(tr?[]:['km']),...mid,'summary'];
   }
-  return ['utype',...(d.utype?['grund']:[]),...(tr?[]:['km']),'schluessel','zustand','fotos','zubehoer',...(d.utype==='rueckgabe'?[]:['reglement']),'summary'];
+  const bu=!!(veh()&&veh().buero);
+  return ['utype',...(d.utype?['grund']:[]),...(tr?[]:['km']),...(bu?[]:['schluessel']),'zustand',...(bu?[]:['fotos']),'zubehoer',...(d.utype==='rueckgabe'?[]:['reglement']),'summary'];
 }
 
 /* ---------- Vorgänge (Historie) ---------- */
@@ -1680,7 +1681,7 @@ function submit(){
       notice=rec.prio==='sehrhoch'?{cls:'alarm',key:'nAlarm'}:rec.prio==='hoch'?{cls:'hoch',key:'nHoch'}:{cls:'normal',key:'nNormal'};
     }else{
       const missing=ZUB.filter(k=>d['z_'+k]==='nein');
-      Object.assign(rec,{sub:d.utype,grund:d.grund,grundTxt:d.grund==='andere'?(d.grundTxt||'').trim():null,key:null,nPhotos:SLOTS.flatMap(s=>P(s.k)).length,missing,notClean:d.zustand==='nein',photos:[...SLOTS.flatMap(s=>P(s.k)),...P('zustand')],note:(d.zustandTxt||'').trim(),zub:Object.fromEntries(ZUB.map(k=>[k,d['z_'+k]])),reglement:d.utype==='rueckgabe'?null:!!d.reglement,keyPhotos:P('keyphoto').slice(),slotPhotos:Object.fromEntries([...SLOTS.map(s=>[s.k,P(s.k).slice()]),['zustand',P('zustand').slice()]].filter(x=>x[1].length))});
+      Object.assign(rec,{sub:d.utype,buero:!!(veh()&&veh().buero)||undefined,grund:d.grund,grundTxt:d.grund==='andere'?(d.grundTxt||'').trim():null,key:null,nPhotos:SLOTS.flatMap(s=>P(s.k)).length,missing,notClean:d.zustand==='nein',photos:[...SLOTS.flatMap(s=>P(s.k)),...P('zustand')],note:(d.zustandTxt||'').trim(),zub:Object.fromEntries(ZUB.map(k=>[k,d['z_'+k]])),reglement:d.utype==='rueckgabe'?null:!!d.reglement,keyPhotos:P('keyphoto').slice(),slotPhotos:Object.fromEntries([...SLOTS.map(s=>[s.k,P(s.k).slice()]),['zustand',P('zustand').slice()]].filter(x=>x[1].length))});
       notice=missing.length||rec.notClean?{cls:'hoch',key:'nUebIssue'}:{cls:'normal',key:'nUebOk'};
     }
     if(rec.tow)notice={cls:notice.cls==='alarm'?'alarm':'hoch',key:'nAbs'};
@@ -1876,6 +1877,7 @@ function aFahrzeug(){
       <div class="frow"><label class="field" for="e-kind"><span>Typ</span><select id="e-kind" name="kind"><option value="auto" ${!isTrailer(v)?'selected':''}>Fahrzeug</option><option value="anhaenger" ${isTrailer(v)?'selected':''}>Anhänger</option></select></label>
       <label class="field" for="e-fuel"><span>Antrieb</span><select id="e-fuel" name="fuel">${Object.entries(DRIVE_L).map(([k,l])=>`<option value="${k}" ${(v.fuel||'')===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
       <label class="field" for="e-status"><span>Status</span><select id="e-status" name="status">${Object.entries(VST_L).map(([k,l])=>`<option value="${k}" ${v.status===k?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="cbx" for="e-buero"><input id="e-buero" name="buero" type="checkbox" ${v.buero?'checked':''}> Büroauto: Übernahme und Abgabe ohne Schlüssel- und Fahrzeugfotos</label>
       ${pannenFields(v)}
       <p class="err" id="ferr" role="alert" hidden></p>
       <button class="primary" type="submit">Änderungen speichern</button>
@@ -2477,7 +2479,7 @@ app.addEventListener('submit',e=>{
     const pn=d.plate.replace(/\s/g,'').toUpperCase();
     if(VEH.some(v=>v!==self&&v.plate.replace(/\s/g,'').toUpperCase()===pn))return err(`Das Kennzeichen ${d.plate} ist bereits erfasst.`);
     const data={model:d.model,nr:d.nr,plate:d.plate.toUpperCase(),kind:d.kind,fuel:d.kind==='anhaenger'?null:(d.fuel||null)};
-    if(self){const pn=readPannen(d,err);if(!pn)return;Object.assign(data,pn);}
+    if(self){const pn=readPannen(d,err);if(!pn)return;Object.assign(data,pn);data.buero=d.buero==='on'&&d.kind!=='anhaenger';}
     if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:self.id,p_data:vehData(self),p_removed:false}).then(()=>toast('Stammdaten gespeichert')).catch(()=>toast('Speichern fehlgeschlagen – bitte Verbindung prüfen'));}
     else{const nv=Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data);const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Wird gespeichert …';}
       rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:nv.id,p_data:vehData(nv),p_removed:false}).then(()=>{VEH.push(nv);VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}).catch(x=>{console.warn(x);if(btn){btn.disabled=false;btn.textContent='Hinzufügen';}err('Speichern fehlgeschlagen – bitte Verbindung prüfen und nochmals versuchen.');});}
@@ -2598,6 +2600,7 @@ async function buildPdf(rec,opt){opt=opt||{};const ext=!!opt.external;
     if(rec.sub!=='rueckgabe')kv('Dienstwagenreglement',rec.reglement===false?'Nicht bestätigt':'Version 1.0 vom 26. Oktober 2021 gelesen und akzeptiert (Anhang)');
     const sp=rec.slotPhotos?Object.entries(rec.slotPhotos).flatMap(([k,a])=>a.map(src=>({src,label:SLOT_DE[k]||k}))):[];
     if(sp.length){section('Fotodokumentation',170);await photos(sp);}
+    else if(rec.buero){section('Fotodokumentation');kv('Fotos','Keine nötig – Büroauto');}
     if(rec.sub==='definitiv'){need(60);y-=10;para(`Der Mitarbeiter ist ab der Übernahme für das Fahrzeug verantwortlich, inklusive Schäden und Bussen. Bei der Abgabe ist das Abgabeformular in der Fahrzeug-App zwingend auszufüllen, andernfalls wird eine Busse von CHF 100.– fällig.`,9.5);}
     need(40);y-=10;para(`Bestätigt in der Fahrzeug-App durch ${rec.who} am ${deDT(rec.at)}.`,9.5,C_MUTED);
     if(rec.sub!=='rueckgabe'&&rec.reglement!==false){
@@ -2695,7 +2698,7 @@ function mailFor(rec,rule){
       html:mailShell(`<p style="margin:0 0 4px;font-size:18px;font-weight:bold">${eh(ut)}</p><p style="margin:0 0 12px;color:#6A7378">${eh(pnTxt(rec.who,rec.pn))} hat am ${dDate(at)} um ${dTime(at)} Uhr ${ab?'das Fahrzeug abgegeben':rec.sub==='temporaer'?'das Fahrzeug temporär übernommen':'das Fahrzeug übernommen'}.</p>`+
         mailRows([['Art',eh(ut)],['Grund',rec.grund?eh(rec.grund==='andere'?rec.grundTxt:I18N.de['gr_'+rec.grund])+(rec.grund==='andere'?origHtml(rec,'grundTxt'):''):null],['Fahrzeug',eh(vehTxt)],['Kennzeichen',eh(plateTxt)],['Kilometerstand',rec.km!=null?fmtKm(rec.km)+' km':null],...kRows,['Mitarbeiter',eh(pnTxt(rec.who,rec.pn))],['Zubehör',miss.length?'<b style="color:#B8433A">Fehlt: '+eh(miss.join(', '))+'</b>':'Alles vorhanden'],['Zustand',rec.notClean?'<b style="color:#B8433A">Nicht sauber</b>':'Sauber'],['Bemerkung',rec.note?eh(rec.note)+origHtml(rec,'zustandTxt'):null],['Dienstwagenreglement',ab?null:(rec.reglement?'Gelesen und akzeptiert':'Nicht bestätigt')],['Fotos',nF?nF+' Fotos (inkl. Schlüssel)':null],['Referenz',rec.id]])+
         (kAbw?`<p style="margin:0 0 8px;color:#B8433A">Zwischen der Abgabe am ${dDate(kAt)} und dieser Übernahme wurde das Fahrzeug ${fmtKm(kc.diff)} km gefahren, ohne dass jemand eine Übernahme erfasst hat. Der Fall ist in der Verwaltung unter Übernahmen › Km-Abgleich offen und kann dort mit Busse, Stellungnahme oder «Kein Verstoss» abgeschlossen werden.</p>`:'')+
-        (ab?'':`<p style="margin:0 0 8px">Der Mitarbeiter wurde in der App darauf hingewiesen, dass er ab sofort für das Fahrzeug verantwortlich ist (Schäden, Bussen) und bei der Abgabe das Abgabeformular ausfüllen muss (sonst Busse CHF 100.–).</p>`)+`<p style="margin:0">Das Protokoll mit allen Fotos${ab?'':' und dem Dienstwagenreglement'} ist als PDF angehängt.</p>`,banner)});
+        (ab?'':`<p style="margin:0 0 8px">Der Mitarbeiter wurde in der App darauf hingewiesen, dass er ab sofort für das Fahrzeug verantwortlich ist (Schäden, Bussen) und bei der Abgabe das Abgabeformular ausfüllen muss (sonst Busse CHF 100.–).</p>`)+(rec.buero?`<p style="margin:0">Büroauto: Übernahme und Abgabe ohne Schlüssel- und Fahrzeugfotos. Das Protokoll${ab?'':' mit dem Dienstwagenreglement'} ist als PDF angehängt.</p>`:`<p style="margin:0">Das Protokoll mit allen Fotos${ab?'':' und dem Dienstwagenreglement'} ist als PDF angehängt.</p>`),banner)});
   }
   const typ=I18N.de['m_'+rec.sub];const prio=rec.prio?I18N.de['prio_'+rec.prio]:'';
   const what=rec.dmg?eh((rec.dmg.types||[]).filter(k=>k!=='andere').map(k=>I18N.de['d_'+k]).concat((rec.dmg.types||[]).includes('andere')?['Anderes']:[]).join(', ')):rec.flt?eh((rec.flt.types||[]).filter(k=>k!=='andere').map(k=>I18N.de['f_'+k]).concat((rec.flt.types||[]).includes('andere')?['Andere Meldung']:[]).join(', ')):null;
@@ -2873,7 +2876,7 @@ async function loadDbUsers(){try{const l=await rpc('fz_users');(l||[]).forEach(a
 loadDbUsers();
 
 /* Fahrzeugstamm: in der Verwaltung hinzugefügte, geänderte und entfernte Fahrzeuge */
-function vehData(v){const o={};['nr','model','plate','kind','fuel','ins','insTel','garage','garageAddr','garageMail','contract'].forEach(k=>{if(v[k]!==undefined)o[k]=v[k];});return o;}
+function vehData(v){const o={};['nr','model','plate','kind','fuel','buero','ins','insTel','garage','garageAddr','garageMail','contract'].forEach(k=>{if(v[k]!==undefined)o[k]=v[k];});return o;}
 function removeVeh(id){const i=VEH.findIndex(v=>v.id===id);if(i>=0){const [v]=VEH.splice(i,1);v.removed=true;if(!VEH_GONE.some(x=>x.id===id))VEH_GONE.push(v);}if(S.vehicleId===id&&S.screen!=='flow'&&S.screen!=='abschlepp')S.vehicleId=null;}
 async function loadDbVehicles(){
   try{const l=await rpc('fz_vehicles');
