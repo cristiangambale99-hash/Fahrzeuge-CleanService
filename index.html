@@ -687,6 +687,10 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .tb-t tr.tb-done td{background:var(--surface-2);color:var(--muted)}
 .tb-bad{color:var(--danger);font-weight:700}
 .tb-tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}.tb-tag.r{background:var(--danger-soft);color:var(--danger)}.tb-tag.y{background:#FBF3E2;color:var(--warn)}.tb-tag.g{background:var(--ok-soft);color:var(--ok)}.tb-tag.n{background:var(--surface-2);color:var(--muted)}
+.tb-tag.v{background:#EFEAFB;color:#5B3FB0}.tb-bk{display:block;color:var(--ok);font-size:12px;width:100%;text-align:right}.tb-rep{margin:2px 0}
+.tb-alert{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--danger);background:var(--danger-soft);padding:14px 16px;margin:0 0 16px}.tb-alert h2{margin:0 0 4px;font-size:16px;color:var(--danger)}.tb-alert p{margin:0 0 4px}.tb-ai{flex:none;width:28px;height:28px;border-radius:50%;background:var(--danger);color:#fff;display:grid;place-items:center;font-weight:700}
+.tb-msgh{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}.tb-msg{white-space:pre-wrap;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5}.tb-msgd{margin:10px 0}.tb-msgd summary{cursor:pointer;color:var(--accent,#2BB6B7);font-weight:600;font-size:14px}.tb-msgd .tb-msg{margin-top:8px}
+.bk-test{margin-top:20px}.bk-row{display:grid;grid-template-columns:160px 1fr auto;gap:12px;align-items:end}.bk-row .field{margin:0}.bk-row button{width:auto}@media(max-width:760px){.bk-row{grid-template-columns:1fr}.bk-row button{width:100%}.tb-bk{text-align:left}}
 .tb-act{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap}.tb-act button{width:auto;white-space:nowrap}
 .tb-sel{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13.5px;background:var(--surface);max-width:100%}
 .tb-pers{margin:-6px 0 14px}
@@ -2224,7 +2228,10 @@ function aSettings(){
   ${EV.map(([k,l])=>{const R=k==='tanken'?MAIL_RULES.tanken:MAIL_RULES[k];const cell=kind=>{const x=R.filter(r=>r[1]===kind).map(r=>r[0]==='werkstatt'?{label:'Zielgarage des Fahrzeugs',addr:'Fegola, Gerstl, Häusermann oder Moser'}:MAIL_TO[r[0]]);return x.length?x.map(t=>`<b>${eh(t.label)}</b><small>${eh(t.addr)}</small>`).join(''):'<span class="muted">–</span>';};
     return `<tr><td><b>${l}</b>${k!=='tanken'&&MTYPES[k]?`<small>Priorität ${deL('prio_'+MTYPES[k].prio)}${k==='schaden'?' · mit Drittperson: sehr hoch':''}</small>`:''}</td><td>${cell('intern')}</td><td>${cell('extern')}</td><td class="docs">${R.map((r,i)=>`<button class="linkbtn" data-act="mailsample" data-k="${k}" data-i="${i}">${r[1]==='extern'?'Extern':'Intern'}</button>`).join(' · ')}</td></tr>`;}).join('')}
   </tbody></table></div>
-  <p class="hint">Externe Mails enthalten keine Angaben zur Drittperson und keine internen Bearbeitungsnotizen.</p>`;
+  <p class="hint">Externe Mails enthalten keine Angaben zur Drittperson und keine internen Bearbeitungsnotizen.</p>
+  <section class="apanel pad bk-test"><h2 class="h3">Beekeeper · HR BOT</h2><p class="hint">Bei «Kulanz» und «Busse ausstellen lassen» im Abgleich der Monatsrechnung schreibt der HR BOT dem Mitarbeiter im Beekeeper. Gesucht wird zuerst über die Personalnummer, sonst über den Namen. Hier kannst du eine Testnachricht senden, zum Beispiel an dich selbst.</p>
+  <div class="bk-row"><label class="field" for="bk-pn"><span>Personalnummer</span><input id="bk-pn" inputmode="numeric" value="${esc((S.bkTest&&S.bkTest.pn)||'')}"></label><label class="field" for="bk-name"><span>Name</span><input id="bk-name" value="${esc((S.bkTest&&S.bkTest.name)||'')}" placeholder="Vorname Nachname"></label><button class="secondary" data-act="bktest" ${S.bkTest&&S.bkTest.busy?'disabled':''}>${S.bkTest&&S.bkTest.busy?'Wird gesendet …':'Testnachricht senden'}</button></div>
+  ${S.bkTest&&S.bkTest.ok?`<p class="notice n-normal" role="status">${esc(S.bkTest.ok)}</p>`:''}${S.bkTest&&S.bkTest.err?`<p class="err" role="alert">${esc(S.bkTest.err)}</p>`:''}</section>`;
 }
 function aKontrolle(){
   return aHead('Fahrzeugkontrolle','Nur für die Verwaltung sichtbar.')+`<div class="lockcard"><p>Die interne Quartalskontrolle bleibt ein separates Modul und ist für Mitarbeitende nicht sichtbar.</p><p>Sie greift auf denselben Fahrzeugstamm zu, so dass Kontrollen, Mängel und die Meldungen aus der Mitarbeiter-App in derselben Fahrzeughistorie zusammenlaufen.</p><button class="secondary" disabled>Kontrolle öffnen (Verknüpfung folgt)</button></div>`;
@@ -2577,14 +2584,14 @@ function tbDriver(x){
   try{const m=busMatch({kontrollschild:x.v.plate,datum:x.d,uhrzeit:x.t});if(m&&m.verdict&&m.verdict.who)return {who:m.verdict.who,pn:m.verdict.pn,level:m.verdict.level,grund:m.verdict.grund||[]};}catch(e){console.warn(e);}
   return null;
 }
-function tbMailHtml(A,x,drv){
+function tbMailHtml(A,x,drv,rep){
   const vtx=x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`;
   const d0=tbDs(new Date(tbDay(x.d).getTime()-3*864e5).toISOString().slice(0,10)),d1=tbDs(new Date(tbDay(x.d).getTime()+4*864e5).toISOString().slice(0,10));
   const row=(l,v)=>`<tr><td style="padding:6px 12px 6px 0;color:#6A7378;width:190px;vertical-align:top">${l}</td><td style="padding:6px 0">${v}</td></tr>`;
   const lv={sicher:'sicher',wahrscheinlich:'wahrscheinlich',unsicher:'unsicher'}[drv&&drv.level]||'';
   return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#2B3135;line-height:1.55"><div style="background:#2BB6B7;color:#fff;border-radius:8px;padding:12px 16px;font-weight:700;margin-bottom:16px">Bitte um Fahrzeugbusse – Tankung ohne Tankprotokoll</div>
   <p>Guten Tag</p><p>Beim Abgleich der Tankkarten-Rechnung ${esc(tbMonthName(A.id))} (${esc(A.meta.lieferant||'Tankkarte')}${A.meta.nr?', Rechnung '+esc(A.meta.nr):''}) wurde eine Tankung gefunden, für die in der Fahrzeug-App kein Tankprotokoll erfasst wurde. Wir bitten euch, gemäss Dienstwagenreglement eine Fahrzeugbusse auszustellen.</p>
-  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 14px">${row('Fahrzeug',`<b>${vtx}</b>`)}${row('Tankung laut Rechnung',`${tbDs(x.d)}, ${esc(x.t)} · ${esc(x.ort)}`)}${row('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)} · Karte ${esc(x.card)}`)}${row('Fahrer laut Übernahmen',drv?`<b>${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}</b>${lv?' · Zuordnung '+lv:''}${drv.grund&&drv.grund[0]?`<br><span style="color:#6A7378;font-size:13px">${esc(drv.grund[0].replace(/der Busse/g,'der Tankung'))}</span>`:''}`:'<b>nicht bestimmbar</b> – bitte bei der Logistik nachfragen')}${row('Tankprotokoll in der App',`<span style="color:#B8433A"><b>keines</b> zwischen ${d0} und ${d1}</span>`)}${row('Ausgelöst von',`Verwaltung Fahrzeuge, ${new Date().toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'})}`)}</table>
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 14px">${row('Fahrzeug',`<b>${vtx}</b>`)}${row('Tankung laut Rechnung',`${tbDs(x.d)}, ${esc(x.t)} · ${esc(x.ort)}`)}${row('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)} · Karte ${esc(x.card)}`)}${row('Fahrer laut Übernahmen',drv?`<b>${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}</b>${lv?' · Zuordnung '+lv:''}${drv.grund&&drv.grund[0]?`<br><span style="color:#6A7378;font-size:13px">${esc(drv.grund[0].replace(/der Busse/g,'der Tankung'))}</span>`:''}`:'<b>nicht bestimmbar</b> – bitte bei der Logistik nachfragen')}${row('Tankprotokoll in der App',`<span style="color:#B8433A"><b>keines</b> zwischen ${d0} und ${d1}</span>`)}${rep?row('Wiederholung',`<b style="color:#B8433A">Kulanz bereits gewährt</b> am ${new Date(rep.at).toLocaleDateString('de-CH')} für die Tankung vom ${tbDs(rep.d)} (Abgleich ${esc(tbMonthName(rep.id))})`):''}${row('Ausgelöst von',`Verwaltung Fahrzeuge, ${new Date().toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'})}`)}</table>
   <p>Die Rechnungsseite mit dieser Tankung ist als PDF angehängt.</p><p style="margin:0">Freundliche Grüsse<br>Clean Service Scaramuzzo AG · Fahrzeuge</p></div>`;
 }
 function tbMonthName(id){const [y,m]=id.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('de-CH',{month:'long',year:'numeric'});}
@@ -2593,11 +2600,34 @@ async function tbSendBusse(x){
   const subject=`Bitte um Fahrzeugbusse · Tankprotokoll fehlt · ${vshort} · ${tbDs(x.d)}`;
   const att=await tbPageB64(A,x.page);
   if(!MAIL_ENDPOINT)throw new Error('Mailversand nur in der veröffentlichten App');
-  const body={to:TB_MAIL_TO,cc:TB_MAIL_CC,subject,html:tbMailHtml(A,x,drv)};
+  const body={to:TB_MAIL_TO,cc:TB_MAIL_CC,subject,html:tbMailHtml(A,x,drv,tbRepeat(drv,A.id))};
   if(att){body.attachmentBase64=att;body.attachmentName=`Tankrechnung_${A.id}_Nr${x.v.nr}_${x.d.slice(8,10)}-${x.d.slice(5,7)}.pdf`.replace(/[^\w.-]/g,'');}
   const r=await fetch(MAIL_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status));}
   return {at:new Date().toISOString(),who:drv?drv.who:null,pn:drv?drv.pn:null};
+}
+/* Kulanz & Beekeeper (HR BOT) */
+const tbPKey=d=>d?(d.pn?'pn:'+String(d.pn).trim():'n:'+String(d.who||'').toLowerCase().replace(/\s+/g,' ').trim()):'';
+// Alle Kulanzfälle aus früheren Monaten (gespeichert in den Abgleichen)
+function tbKulanzHist(curId){
+  const out={};
+  (S.tbList||[]).forEach(a=>{if(!a||a.id>=curId)return;Object.entries(a.done||{}).forEach(([k,d])=>{if(!d||!d.kulanz)return;const pk=tbPKey(d.kulanz);if(!pk)return;const [card,dd]=k.split('|');const e={id:a.id,at:d.kulanz.at,d:dd,who:d.kulanz.who,pn:d.kulanz.pn,card};(out[pk]=out[pk]||[]).push(e);});});
+  Object.values(out).forEach(L=>L.sort((a,b)=>String(b.at).localeCompare(String(a.at))));
+  return out;
+}
+function tbRepeat(drv,curId){if(!drv)return null;const H=tbKulanzHist(curId);return (H[tbPKey(drv)]||[])[0]||null;}
+function tbVehTxt(v){return v.kind==='geraet'?v.model:`Nr. ${v.nr} (${v.plate})`;}
+function tbBkText(x,drv,art){
+  const kopf=`Hallo ${drv.who}\n\nAm ${tbDs(x.d)} um ${x.t} hast du ${x.v.kind==='geraet'?'für '+x.v.model:'mit dem Fahrzeug '+tbVehTxt(x.v)} bei ${x.ort} getankt: ${x.prod}, ${tbF2(x.l)} l, CHF ${tbF2(x.chf)}.\n\nDafür fehlt das Tankprotokoll in der Fahrzeug-App.`;
+  if(art==='kulanz')return kopf+`\n\nAus Kulanz verzichten wir dieses Mal auf eine Busse. Bitte fülle das Tankprotokoll künftig nach jeder Tankung aus. Beim nächsten Mal wird eine Busse ausgestellt.\n\nDanke und gute Fahrt\nPersonalabteilung`;
+  return kopf+` Gemäss Dienstwagenreglement wird dafür eine Busse ausgestellt. Die Personalabteilung meldet sich mit den Details.\n\nBitte fülle das Tankprotokoll nach jeder Tankung aus.\n\nPersonalabteilung`;
+}
+async function bkSend(pn,name,text){
+  if(!BK_ENDPOINT)throw new Error('Beekeeper nur in der veröffentlichten App');
+  const r=await fetch(BK_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:S.adminCode,pn:pn||'',name:name||'',text})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.success)throw new Error(j.error||('HTTP '+r.status));
+  return j;
 }
 
 /* Darstellung */
@@ -2606,17 +2636,25 @@ const tbApp=h=>h?`${dS(h.at)}<small>${tbF2(+h.liter)} l · CHF ${tbF2(+h.chf)} �
 const tbRech=x=>`${tbDs(x.d).slice(0,5)} ${esc(x.t)}<small>${esc(x.ort)}</small>`;
 const tbBez=x=>`${esc(x.prod)}<small>${tbF2(x.l)} l · CHF ${tbF2(x.chf)}</small>`;
 const tbBtn=(act,key,txt,cls='secondary sm',extra='')=>`<button class="${cls}" data-act="${act}" data-k="${esc(key)}" ${extra}>${txt}</button>`;
-function tbDoneTag(d){if(!d)return'';if(d.busse)return `<span class="tb-tag g">Busse beantragt ${new Date(d.busse.at).toLocaleDateString('de-CH')}</span>`;return `<span class="tb-tag g">${esc(d.txt||'erledigt')}</span>`;}
+function tbBkTag(b){if(!b)return'';return b.ok?`<small class="tb-bk">Mitarbeiter per Beekeeper informiert</small>`:`<small class="tb-bad">Beekeeper-Nachricht nicht gesendet${b.err?': '+esc(b.err):''}</small>`;}
+function tbDoneTag(d){if(!d)return'';if(d.busse)return `<span class="tb-tag g">Busse beantragt ${new Date(d.busse.at).toLocaleDateString('de-CH')}</span>${tbBkTag(d.busse.bk)}`;if(d.kulanz)return `<span class="tb-tag v">Kulanz gewährt ${new Date(d.kulanz.at).toLocaleDateString('de-CH')}</span>${tbBkTag(d.kulanz.bk)}`;return `<span class="tb-tag g">${esc(d.txt||'erledigt')}</span>`;}
 function tbSec(title,sub,n,cls,head,rows,empty){if(!n)return'';return `<section class="apanel tb-sec"><div class="apanel-h"><h2>${title}${sub?` <small>${sub}</small>`:''}</h2><span class="tb-tag ${cls}">${n}</span></div><div class="tbl-wrap tb-flat"><table class="tbl tb-t"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div></section>`;}
 const TB_H='<th>Fahrzeug</th><th>Rechnung</th><th>Bezug</th><th>App</th><th>Problem</th><th></th>';
 function tbView(){
   const A=S.tbA;if(!A){S.tbOpen=false;return aTanken();}
   const R=tbCompute(A),D=R.done;
-  const row=(x,prob,acts)=>{const d=D[x.key];return `<tr class="${d?'tb-done':''}"><td>${tbVcell(x.v,x)}</td><td>${tbRech(x)}</td><td>${tbBez(x)}</td><td>${tbApp(x.app)}</td><td>${prob}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',x.key,'Rückgängig','linkbtn'):acts}</div></td></tr>`;};
+  const row=(x,prob,acts)=>{const d=D[x.key];return `<tr class="${d?'tb-done':''}"><td>${tbVcell(x.v,x)}</td><td>${tbRech(x)}</td><td>${tbBez(x)}</td><td>${tbApp(x.app)}</td><td>${prob}</td><td><div class="tb-act">${d?tbDoneTag(d)+(d.busse&&d.busse.bk&&!d.busse.bk.ok&&d.busse.who?tbBtn('tbbkretry',x.key,'Nachricht nochmals senden','linkbtn'):'')+tbBtn('tbundo',x.key,'Rückgängig','linkbtn'):acts}</div></td></tr>`;};
   const sTreib=tbSec('Falscher Treibstoff in der App','laut Rechnung anders getankt',R.open.treib.length,'r',TB_H,R.treib.map(x=>row(x,`<span class="tb-tag r">App: ${TB_FUEL_L[x.app.fuel]||esc(x.app.fuel)}</span>`,tbBtn('tbfix',x.key,'Auf '+TB_FUEL_L[x.fuel]+' korrigieren','primary sm','data-w="fuel"'))).join(''));
   const sFz=tbSec('Beim falschen Fahrzeug erfasst','',R.open.fz.length,'r',TB_H,R.fz.map(x=>{const av=veh(x.app.veh);return row(x,`<span class="tb-tag r">In der App bei ${av.kind==='geraet'?esc(av.model):'Nr. '+esc(av.nr)+' '+esc(av.model)}</span>`,tbBtn('tbfix',x.key,'Auf Nr. '+esc(x.v.nr)+' umbuchen','primary sm','data-w="veh"')+tbBtn('tbok',x.key,av.kind==='geraet'?'Ist Kanister – ok':'Ist so richtig'));}).join(''));
   const sBetrag=tbSec('Liter oder Betrag falsch eingetippt','App-Wert gerundet oder vertippt',R.open.betrag.length,'y',TB_H,R.betrag.map(x=>row(x,`<span class="tb-tag y">Diff. CHF ${tbF2(Math.abs(x.chf-x.app.chf))} · ${tbF2(Math.abs(x.l-x.app.liter))} l</span>`,tbBtn('tbfix',x.key,'Rechnungswert übernehmen','primary sm','data-w="betrag"'))).join(''));
-  const sFehlt=tbSec('Getankt, aber nicht in der App erfasst','Busse ausstellen lassen oder als erledigt markieren',R.open.fehlt.length,'r',TB_H,R.fehlt.map(x=>{const warn=x.v&&x.v.fuel&&['diesel','b95'].includes(x.fuel)&&x.v.fuel!==x.fuel&&x.v.kind!=='geraet'?`<small class="tb-bad">${TB_FUEL_L[x.fuel]} mit der Karte eines ${x.v.fuel==='diesel'?'Diesel':'Benzin'}fahrzeugs</small>`:'';return row(x,`<span class="tb-tag r">fehlt</span>${warn}`,tbBtn('tbbusse',x.key,'Busse ausstellen lassen','primary sm')+tbBtn('tbok',x.key,'Erledigt'));}).join(''));
+  const reps=[];
+  const sFehlt=tbSec('Getankt, aber nicht in der App erfasst','Busse ausstellen lassen, Kulanz gewähren oder als erledigt markieren',R.open.fehlt.length,'r',TB_H,R.fehlt.map(x=>{const warn=x.v&&x.v.fuel&&['diesel','b95'].includes(x.fuel)&&x.v.fuel!==x.fuel&&x.v.kind!=='geraet'?`<small class="tb-bad">${TB_FUEL_L[x.fuel]} mit der Karte eines ${x.v.fuel==='diesel'?'Diesel':'Benzin'}fahrzeugs</small>`:'';
+    const drv=tbDriver(x),rp=tbRepeat(drv,A.id);if(rp&&!D[x.key])reps.push({x,drv,rp});
+    const who=drv?`<small>Fahrer: ${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}</small>`:'<small>Fahrer nicht bestimmbar</small>';
+    const repTxt=rp?`<span class="tb-tag r tb-rep">Wiederholung nach Kulanz</span><small class="tb-bad">Kulanz am ${new Date(rp.at).toLocaleDateString('de-CH')} (Tankung ${tbDs(rp.d)})</small>`:'';
+    const kul=rp?tbBtn('tbkulanz',x.key,'Kulanz','secondary sm','disabled title="Hatte schon Kulanz"'):!drv?tbBtn('tbkulanz',x.key,'Kulanz','secondary sm','disabled title="Fahrer nicht bestimmbar"'):tbBtn('tbkulanz',x.key,'Kulanz','secondary sm tb-kul');
+    return row(x,`<span class="tb-tag r">fehlt</span>${repTxt}${who}${warn}`,tbBtn('tbbusse',x.key,'Busse ausstellen lassen','primary sm')+kul+tbBtn('tbok',x.key,'Erledigt'));}).join(''));
+  const sRep=reps.length?`<section class="apanel tb-alert" role="alert"><span class="tb-ai" aria-hidden="true">!</span><div><h2>Wiederholung nach Kulanz: ${reps.length===1?'1 Tankung':reps.length+' Tankungen'}</h2>${reps.map(({x,drv,rp})=>`<p class="hint">${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''} hat am ${tbDs(x.d)} ${x.v.kind==='geraet'?'für '+esc(x.v.model):'mit Nr. '+esc(x.v.nr)} getankt und wieder kein Tankprotokoll ausgefüllt. Im ${esc(tbMonthName(rp.id))} wurde dafür schon Kulanz gewährt (Tankung ${tbDs(rp.d)}, Nachricht am ${new Date(rp.at).toLocaleDateString('de-CH')}).</p>`).join('')}<p class="hint"><b>Empfehlung: Busse ausstellen lassen.</b></p></div></section>`:'';
   const sOrph=tbSec('In der App, aber nicht auf der Rechnung','doppelt, falsch erfasst oder anders bezahlt',R.open.orphan.length,'y','<th>Fahrzeug</th><th>App</th><th>Mitarbeiter</th><th>Problem</th><th></th>',R.orphan.map(h=>{const k='o|'+h.id,d=D[k],v=veh(h.veh);const same=S.history.some(o=>o!==h&&o.kind==='tanken'&&o.veh===h.veh&&o.at.toDateString()===h.at.toDateString());return `<tr class="${d?'tb-done':''}"><td>${v.kind==='geraet'?`<b>${esc(v.model)}</b>`:`${plate(v)}<small>Nr. ${esc(v.nr)} ${esc(v.model)}</small>`}</td><td>${tbApp(h)}</td><td>${esc(h.who||'')}</td><td><span class="tb-tag y">nicht auf der Rechnung</span>${same?'<small>am gleichen Tag noch ein Tankprotokoll – doppelt erfasst?</small>':''}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',k,'Rückgängig','linkbtn'):tbBtn('tbok',k,'Geprüft')}</div></td></tr>`;}).join(''));
   const sKm=tbSec('Km-Stand unplausibel','aus den Tankprotokollen des Monats',R.open.km.length,'y','<th>Fahrzeug</th><th>Verlauf im Monat</th><th>Problem</th><th></th>',R.km.map(k=>{const d=D[k.key];return `<tr class="${d?'tb-done':''}"><td>${plate(k.v)}<small>Nr. ${esc(k.v.nr)} ${esc(k.v.model)}</small></td><td class="num">${k.seq.join(' → ')}</td><td>${k.prob.map(p=>`<span class="tb-tag y">${esc(p)}</span>`).join(' ')}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',k.key,'Rückgängig','linkbtn'):tbBtn('tbok',k.key,'Geprüft')}</div></td></tr>`;}).join(''));
   const cg={};R.karte.forEach(x=>{(cg[x.card]=cg[x.card]||{card:x.card,label:x.label,xs:[]}).xs.push(x);});
@@ -2630,7 +2668,7 @@ function tbView(){
   const sumOkTxt=A.sumOk?'Summen ✓':'<span class="tb-bad">Summen gehen nicht auf</span>';
   const appSum=S.history.filter(h=>{const [a,b]=tbMonthRange(A.id);return h.kind==='tanken'&&h.at>=a&&h.at<b;}).reduce((a,h)=>a+(+h.chf||0),0);
   const allOk=!R.nErr&&!R.open.km.length&&!R.karte.length;
-  return `<button class="linkbtn" data-act="tbclose">‹ Tankvorgänge</button>`+aHead(`Abgleich Monatsrechnung ${esc(tbMonthName(A.id))}`,`${esc(A.meta.lieferant||'Tankkarte')}${A.meta.nr?' · Rechnung '+esc(A.meta.nr):''}${A.meta.datum?' vom '+esc(A.meta.datum):''} · ${A.cards.length} Karten · ${A.tx.length} Bezüge${A.eingelesen?' · eingelesen am '+new Date(A.eingelesen).toLocaleDateString('de-CH'):''}`,`<div class="tb-headbtns"><button class="secondary sm" data-act="tbnew">Andere Rechnung einlesen</button></div>`)+persTxt+
+  return `<button class="linkbtn" data-act="tbclose">‹ Tankvorgänge</button>`+aHead(`Abgleich Monatsrechnung ${esc(tbMonthName(A.id))}`,`${esc(A.meta.lieferant||'Tankkarte')}${A.meta.nr?' · Rechnung '+esc(A.meta.nr):''}${A.meta.datum?' vom '+esc(A.meta.datum):''} · ${A.cards.length} Karten · ${A.tx.length} Bezüge${A.eingelesen?' · eingelesen am '+new Date(A.eingelesen).toLocaleDateString('de-CH'):''}`,`<div class="tb-headbtns"><button class="secondary sm" data-act="tbnew">Andere Rechnung einlesen</button></div>`)+sRep+persTxt+
   `<div class="tb-k"><div><span>Rechnung</span><b class="num">CHF ${tbF2(A.meta.total||0)}</b><small>${checked} Bezüge geprüft · ${sumOkTxt}</small></div><div class="g"><span>Stimmt überein</span><b>${nOk}</b><small>CHF ${tbF2(R.sum('ok'))}</small></div><div class="${R.nErr?'r':'g'}"><span>Fehler offen</span><b>${R.nErr}</b><small>${R.nErr?'müssen korrigiert werden':'alles erledigt'}</small></div><div class="${R.karte.length?'y':'g'}"><span>Karten zuordnen</span><b>${Object.keys(cg).length}</b><small>${R.karte.length} Bezüge · CHF ${tbF2(R.sum('karte'))}</small></div></div>
   ${allOk?`<div class="notice n-normal" style="margin-bottom:16px">Alles stimmt: Jede Tankung der Rechnung hat ein passendes Tankprotokoll.</div>`:''}
   <div class="tb-top"><section class="apanel pad"><h2 class="h3">Was geprüft wird</h2><ul class="tb-chk">${checks.map((c,i)=>`<li><i>${i+1}</i><span>${c}</span></li>`).join('')}</ul></section>
@@ -2646,9 +2684,20 @@ function tbModal(){
   <div class="frow"><button class="secondary" data-act="tbmclose">Schliessen</button></div></div>`;
   if(m.t==='busse'){const x=tbCompute(S.tbA).items.find(i=>i.key===m.k);if(!x)return'';const drv=tbDriver(x);
     const r=(l,v)=>`<div class="tb-sl"><span>${l}</span><b>${v}</b></div>`;
-    return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-bh"><h2 id="tb-bh">Busse ausstellen lassen?</h2><p class="hint">Für die fehlende Tankprotokoll-Erfassung geht eine Mail an die Personalabteilung mit der Bitte um eine Fahrzeugbusse.</p>
-    <div class="apanel pad tb-box">${r('Fahrzeug',x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`)}${r('Tankung',`${tbDs(x.d)} ${esc(x.t)} · ${esc(x.ort)}`)}${r('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)}`)}${r('Fahrer laut Übernahmen',drv?`${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}`:'nicht bestimmbar')}${r('An',TB_MAIL_TO)}${r('Cc',TB_MAIL_CC)}</div>
+    const rp=tbRepeat(drv,S.tbA.id);
+    return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-bh"><h2 id="tb-bh">Busse ausstellen lassen?</h2><p class="hint">Die Personalabteilung erhält die Mail mit der Bitte um eine Fahrzeugbusse.${drv?' Gleichzeitig erhält der Mitarbeiter im Beekeeper eine Nachricht vom HR BOT.':''}</p>
+    ${rp?`<p class="warnbox">Wiederholung: ${esc(drv.who)} hatte im ${esc(tbMonthName(rp.id))} schon Kulanz. Das steht auch in der Mail.</p>`:''}
+    <div class="apanel pad tb-box">${r('Fahrzeug',x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`)}${r('Tankung',`${tbDs(x.d)} ${esc(x.t)} · ${esc(x.ort)}`)}${r('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)}`)}${r('Fahrer laut Übernahmen',drv?`${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}${drv.level==='unsicher'?' · unsicher':''}`:'nicht bestimmbar')}${r('An',TB_MAIL_TO)}${r('Cc',TB_MAIL_CC)}${r('Beekeeper',drv?'Nachricht an '+esc(drv.who):'keine Nachricht (Fahrer nicht bestimmbar)')}</div>
+    ${drv?`<details class="tb-msgd"><summary>Nachricht im Beekeeper ansehen</summary><div class="tb-msg">${esc(tbBkText(x,drv,'busse'))}</div></details>`:''}
     ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<div class="frow"><button class="secondary" data-act="tbmclose" ${m.busy?'disabled':''}>Abbrechen</button><button class="primary" data-act="tbbussego" data-k="${esc(m.k)}" ${m.busy?'disabled':''}>${m.busy?'Wird gesendet …':'Ja, Busse ausstellen lassen'}</button></div></div>`;}
+  if(m.t==='kulanz'){const x=tbCompute(S.tbA).items.find(i=>i.key===m.k);if(!x)return'';const drv=tbDriver(x);if(!drv)return'';
+    const r=(l,v)=>`<div class="tb-sl"><span>${l}</span><b>${v}</b></div>`;
+    const prev=(tbKulanzHist('9999-99')[tbPKey(drv)]||[]).filter(e=>e.id!==S.tbA.id);
+    return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-kuh"><h2 id="tb-kuh">Kulanz gewähren?</h2><p class="hint">Es wird keine Busse ausgestellt und keine Mail an die Personalabteilung geschickt. Der Mitarbeiter erhält im Beekeeper eine Nachricht vom HR BOT, dass das Tankprotokoll fehlt. Die Kulanz wird gespeichert: Passiert es ihm in einem späteren Monat wieder, zeigt die App das beim Einlesen an.</p>
+    ${drv.level==='unsicher'?`<p class="warnbox">Die Zuordnung zum Fahrer ist unsicher. Bitte prüfen, ob ${esc(drv.who)} wirklich gefahren ist.</p>`:''}
+    <div class="apanel pad tb-box">${r('Mitarbeiter laut Übernahmen',`${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}`)}${r('Fahrzeug',x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`)}${r('Tankung',`${tbDs(x.d)} ${esc(x.t)} · ${esc(x.ort)}`)}${r('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)}`)}${r('Frühere Kulanz',prev.length?prev.map(e=>esc(tbMonthName(e.id))).join(', '):'keine')}</div>
+    <div class="tb-msgh">Nachricht im Beekeeper · HR BOT</div><div class="tb-msg">${esc(tbBkText(x,drv,'kulanz'))}</div>
+    ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<div class="frow"><button class="secondary" data-act="tbmclose" ${m.busy?'disabled':''}>Abbrechen</button><button class="primary" data-act="tbkulanzgo" data-k="${esc(m.k)}" ${m.busy?'disabled':''}>${m.busy?'Wird gesendet …':'Kulanz gewähren und Nachricht senden'}</button></div></div>`;}
   if(m.t==='karten'){const ks=Object.entries(S.tbKarten||{});const vlab=d=>{if(d.typ==='personal')return 'Personalkarte';const v=[GERAET,...VEH,...VEH_GONE].find(x=>x.id===d.veh);return v?(v.kind==='geraet'?v.model:`Nr. ${v.nr} ${v.model}`):'?';};
     return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-kh"><h2 id="tb-kh">Gespeicherte Karten</h2><p class="hint">Karten mit Fahrzeugnummer auf dem Aufdruck brauchen keine Zuordnung. Hier stehen nur die von Hand zugeordneten.</p>
     ${ks.length?`<ul class="tb-kl">${ks.map(([c,d])=>`<li><span><b>Karte ${esc(c)}</b><small>${d.label?'Aufdruck «'+esc(d.label)+'»':''}</small></span><span>${esc(vlab(d))}</span><button class="linkbtn" data-act="tbkdel" data-c="${esc(c)}">Entfernen</button></li>`).join('')}</ul>`:'<p class="empty">Noch keine Karten gespeichert.</p>'}
@@ -2677,8 +2726,36 @@ Object.assign(A,{
   tbbusse:b=>{S.tbM={t:'busse',k:b.dataset.k};render();},
   tbbussego:async b=>{
     const k=b.dataset.k,x=tbCompute(S.tbA).items.find(i=>i.key===k);if(!x)return;S.tbM.busy=true;S.tbM.err='';render();
-    try{const r=await tbSendBusse(x);S.tbM=null;await tbMark(k,{busse:r,at:r.at});toast('Mail an die Personalabteilung gesendet');}
-    catch(e){console.warn(e);S.tbM={t:'busse',k,err:'Die Mail konnte nicht gesendet werden. Bitte Verbindung prüfen und nochmals versuchen.'};render();}
+    let r;
+    try{r=await tbSendBusse(x);}
+    catch(e){console.warn(e);S.tbM={t:'busse',k,err:'Die Mail konnte nicht gesendet werden. Bitte Verbindung prüfen und nochmals versuchen.'};render();return;}
+    const drv=tbDriver(x);
+    if(drv){try{const j=await bkSend(drv.pn,drv.who,tbBkText(x,drv,'busse'));r.bk={ok:true,an:j.an||drv.who,at:new Date().toISOString()};}catch(e){console.warn(e);r.bk={ok:false,err:e.message||'Fehler'};}}
+    S.tbM=null;await tbMark(k,{busse:r,at:r.at});
+    toast(!drv?'Mail an die Personalabteilung gesendet':r.bk.ok?'Mail gesendet · Mitarbeiter im Beekeeper informiert':'Mail gesendet · Beekeeper-Nachricht fehlgeschlagen');
+  },
+  tbkulanz:b=>{S.tbM={t:'kulanz',k:b.dataset.k};render();},
+  tbkulanzgo:async b=>{
+    const k=b.dataset.k,x=tbCompute(S.tbA).items.find(i=>i.key===k);if(!x)return;const drv=tbDriver(x);if(!drv)return;
+    if(tbRepeat(drv,S.tbA.id)){S.tbM.err='Dieser Mitarbeiter hatte schon Kulanz. Bitte Busse ausstellen lassen.';render();return;}
+    S.tbM.busy=true;S.tbM.err='';render();
+    try{const j=await bkSend(drv.pn,drv.who,tbBkText(x,drv,'kulanz'));const at=new Date().toISOString();
+      S.tbM=null;await tbMark(k,{kulanz:{at,who:drv.who,pn:drv.pn||null,bk:{ok:true,an:j.an||drv.who,at}},at});toast('Kulanz gespeichert · Nachricht im Beekeeper gesendet');}
+    catch(e){console.warn(e);S.tbM={t:'kulanz',k,err:'Die Beekeeper-Nachricht konnte nicht gesendet werden'+(e.message?' ('+e.message+')':'')+'. Die Kulanz wurde nicht gespeichert.'};render();}
+  },
+  tbbkretry:async b=>{
+    const k=b.dataset.k,x=tbCompute(S.tbA).items.find(i=>i.key===k),d=S.tbA.done[k];if(!x||!d||!d.busse)return;const drv=tbDriver(x);if(!drv)return;
+    b.disabled=true;
+    try{const j=await bkSend(drv.pn,drv.who,tbBkText(x,drv,'busse'));d.busse.bk={ok:true,an:j.an||drv.who,at:new Date().toISOString()};await tbMark(k,d);toast('Nachricht im Beekeeper gesendet');}
+    catch(e){console.warn(e);d.busse.bk={ok:false,err:e.message||'Fehler'};await tbMark(k,d);toast('Beekeeper-Nachricht fehlgeschlagen');}
+  },
+  bktest:async()=>{
+    const pn=(document.getElementById('bk-pn')||{}).value||'',name=(document.getElementById('bk-name')||{}).value||'';
+    if(!pn.trim()&&!name.trim()){S.bkTest={err:'Bitte Personalnummer oder Name eingeben.'};render();return;}
+    S.bkTest={busy:true,pn,name};render();
+    try{const j=await bkSend(pn.trim(),name.trim(),'Testnachricht aus der Fahrzeug-App (Verwaltung). Bitte ignorieren.');S.bkTest={ok:`Gesendet an ${j.an||name} (gefunden über ${j.via==='personalnummer'?'Personalnummer':'Name'}).`,pn,name};}
+    catch(e){S.bkTest={err:e.message||'Fehler',pn,name};}
+    render();
   }
 });
 app.addEventListener('change',async e=>{const x=e.target;if(!x.dataset)return;
@@ -2911,6 +2988,7 @@ A.pdf=b=>savePdf(b.dataset.id,b.dataset.ext==='1');
 /* ================= E-Mail-Versand ================= */
 /* Versand über Resend via Vercel-Funktion /api/send-mail (Absender fahrzeuge@clean-service.ch). */
 const MAIL_ENDPOINT=location.protocol==='file:'?'':'/api/send-mail';
+const BK_ENDPOINT=location.protocol==='file:'?'':'/api/beekeeper';
 const MAIL_TO={
   tank:{addr:'c08d33f1.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Tankprotokolle'},
   meld:{addr:'04fbbc5a.clean-service.ch@emea.teams.ms',label:'Teams-Kanal Infrastruktur'},
