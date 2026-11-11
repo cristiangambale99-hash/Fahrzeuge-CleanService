@@ -18,7 +18,9 @@ const ERLAUBT = [
   'info@fegolaautomobile.ch',                // Garage Fegola Automobile
   'buero@garage-gerstl.ch',                  // Garage Gerstl AG
   'info.il@haeusermann.com',                 // Häusermann Automobile AG
-  'info@garagemoser.ch'                      // Garage Carrosserie Moser AG
+  'info@garagemoser.ch',                     // Garage Carrosserie Moser AG
+  'personal@clean-service.ch',               // Personalabteilung (Bitte um Fahrzeugbusse aus dem Tankrechnungs-Abgleich)
+  'logistik@clean-service.ch'                // Logistik (Kopie)
 ];
 
 const SB_URL = 'https://yjnkaeplhxcsubwqpqkz.supabase.co';
@@ -54,7 +56,8 @@ module.exports = async (req, res) => {
 
   const to = String(p.to).split(/[;,]/).map(s => s.trim().toLowerCase()).filter(Boolean);
   const erlaubt = ERLAUBT.concat(await garagenAusVerwaltung());
-  const fremd = to.filter(a => !erlaubt.includes(a));
+  const cc = p.cc ? String(p.cc).split(/[;,]/).map(s => s.trim().toLowerCase()).filter(Boolean) : [];
+  const fremd = to.concat(cc).filter(a => !erlaubt.includes(a));
   if (!to.length || fremd.length) return res.status(403).json({ error: 'Empfänger nicht erlaubt', fremd });
 
   if (p.attachmentBase64 && String(p.attachmentBase64).length > MAX_PDF_BASE64) return res.status(413).json({ error: 'Anhang zu gross' });
@@ -65,6 +68,7 @@ module.exports = async (req, res) => {
     subject: String(p.subject).slice(0, 300),
     html: String(p.html)
   };
+  if (cc.length) payload.cc = cc;
   if (p.attachmentBase64) payload.attachments = [{ filename: String(p.attachmentName || 'Protokoll.pdf'), content: String(p.attachmentBase64) }];
 
   try {

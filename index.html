@@ -673,6 +673,32 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .ko-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ko-btns button{width:auto}
 @media(max-width:1100px){.ko-dash,.ko-form{grid-template-columns:minmax(0,1fr)}.ko-aside{position:static}}
 @media(max-width:760px){.ko-fkpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ko-tiles{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.ko-tile{min-height:0}.ko-fk b{font-size:26px}}
+.toolbar.filters .field.inline{min-width:0;max-width:100%}.toolbar.filters select{max-width:100%;min-width:0}
+.tb-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
+.tb-k>div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:14px 16px;border-top:4px solid var(--cs)}
+.tb-k span{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}.tb-k b{display:block;font-size:26px;margin-top:2px}.tb-k small{color:var(--muted);font-size:12.5px}
+.tb-k .g{border-top-color:var(--ok)}.tb-k .g b{color:var(--ok)}.tb-k .r{border-top-color:var(--danger)}.tb-k .r b{color:var(--danger)}.tb-k .y{border-top-color:#E3A325}.tb-k .y b{color:var(--warn)}
+.tb-top{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start;margin-bottom:16px}
+.tb-chk{list-style:none;margin:0;padding:0;columns:2;column-gap:24px}.tb-chk li{break-inside:avoid;display:flex;gap:10px;padding:8px 0;font-size:13.5px}.tb-chk li i{flex:none;width:22px;height:22px;border-radius:6px;background:var(--cs-tint);color:var(--cs-ink);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:12px}
+.tb-sl{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}.tb-sl:first-of-type{border-top:0}.tb-sl b{text-align:right}
+.tb-sec{margin-bottom:16px}.tb-sec .apanel-h h2 small{font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.tb-flat{border:0;border-radius:0;box-shadow:none;position:relative}
+.tb-t td small{display:block;color:var(--muted);font-size:12px}
+.tb-t tr.tb-done td{background:var(--surface-2);color:var(--muted)}
+.tb-bad{color:var(--danger);font-weight:700}
+.tb-tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}.tb-tag.r{background:var(--danger-soft);color:var(--danger)}.tb-tag.y{background:#FBF3E2;color:var(--warn)}.tb-tag.g{background:var(--ok-soft);color:var(--ok)}.tb-tag.n{background:var(--surface-2);color:var(--muted)}
+.tb-act{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap}.tb-act button{width:auto;white-space:nowrap}
+.tb-sel{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13.5px;background:var(--surface);max-width:100%}
+.tb-pers{margin:-6px 0 14px}
+.tb-modal{width:min(620px,calc(100% - 32px))}
+.tb-drop{border:2px dashed #9fd9da;background:var(--cs-tint);border-radius:14px;padding:30px 18px;text-align:center;display:grid;gap:6px;place-items:center;cursor:pointer;margin:14px 0 8px;position:relative}
+.tb-drop .ic{width:36px;height:36px;color:var(--cs-ink)}.tb-drop b{font-size:17px}.tb-drop.over{background:#dff3f3;border-color:var(--cs)}.tb-drop.busy{cursor:progress}
+.tb-prev{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.tb-box{box-shadow:none;margin:10px 0}
+.tb-kl{list-style:none;margin:10px 0;padding:0}.tb-kl li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.tb-kl li small{display:block;color:var(--muted)}
+.tb-headbtns{display:flex;gap:8px;flex-wrap:wrap}.tb-headbtns button{width:auto}
+@media(max-width:1100px){.tb-top{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){.tb-k{grid-template-columns:repeat(2,minmax(0,1fr))}.tb-k b{font-size:21px}.tb-chk{columns:1}.tb-act{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -1787,7 +1813,7 @@ function aShell(content){
   return `<header class="atop"><img class="logo" src="${LOGO}" alt="Clean Service by Scaramuzzo" width="2059" height="650"><span class="brand-tx">Verwaltung Fahrzeuge</span><button class="who" data-act="sheet" data-s="account" aria-label="Konto"><i>${S.user.initials}</i><span class="who-r">${esc(S.user.name)}</span></button></header>
   <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}${k==='bussen'&&buN?`<b class="cnt">${buN}</b>`:''}${k==='kontrollen'&&koDueN()?`<b class="cnt" style="background:#E3A325">${koDueN()}</b>`:''}</button>`).join('')}</nav>
   <main class="amain">${content}</main></div>
-  ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.busSel?busDrawer():''}${S.modal?aModal():''}`;
+  ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.busSel?busDrawer():''}${S.modal?aModal():''}${S.tbM?tbModal():''}`;
 }
 function aHead(title,sub,action){return `<div class="ahead"><div><h1>${title}</h1>${sub?`<p class="hint">${sub}</p>`:''}</div>${action||''}</div>`;}
 function kpi(label,val,sub,tone){return `<div class="kpi ${tone?'k-'+tone:''}"><span class="kpi-l">${label}</span><span class="kpi-v num">${val}</span>${sub?`<span class="kpi-s">${sub}</span>`:''}</div>`;}
@@ -1928,6 +1954,7 @@ function readPannen(d,err){
   return o;
 }
 function aTanken(){
+  if(S.tbOpen&&S.tbA)return tbView();
   const now=new Date();const tm=S.tm==null?0:S.tm,tv=S.tveh||'all';
   const mRange=i=>[new Date(now.getFullYear(),now.getMonth()-i,1),new Date(now.getFullYear(),now.getMonth()-i+1,1)];
   const mName=d=>d.toLocaleDateString('de-CH',{month:'long',year:'numeric'});
@@ -1940,7 +1967,8 @@ function aTanken(){
   const byVeh=[GERAET,...VEH,...VEH_GONE].map(v=>{const x=inMonth.filter(h=>h.veh===v.id);return {v,n:x.length,c:x.reduce((a,h)=>a+h.chf,0)};}).filter(x=>x.n).sort((a,b)=>b.c-a.c);const vehC=byVeh.reduce((a,x)=>a+x.c,0)||1;
   const vehOpts=[GERAET,...VEH.filter(v=>!isTrailer(v))];const active=tm!==0||tv!=='all'||S.tdept!=='all';
   const period=tm==='all'?'alle Monate':mName(mRange(tm)[0]);const vsel=tv!=='all'?veh(tv):null;
-  return aHead('Tankvorgänge','Tank- und Ladevorgänge mit Quittung, zur Kostenverteilung auf Abteilungen und Fahrzeuge.')+
+  const tbL=S.tbList||[];
+  return aHead('Tankvorgänge','Tank- und Ladevorgänge mit Quittung, zur Kostenverteilung auf Abteilungen und Fahrzeuge.',`<div class="tb-headbtns">${tbL.length?`<button class="secondary sm" data-act="tbopen" data-id="${esc(tbL[0].id)}">Abgleich ${esc(tbMonthName(tbL[0].id))}</button>`:''}<button class="primary sm" data-act="tbnew">${ic('clip')}Monatsrechnung einlesen</button></div>`)+
   `<div class="toolbar filters"><label class="field inline" for="t-month"><span>Monat</span><select id="t-month" data-adm="tm"><option value="all" ${tm==='all'?'selected':''}>Alle Monate</option>${Array.from({length:12},(_,i)=>`<option value="${i}" ${tm===i?'selected':''}>${mName(mRange(i)[0])}</option>`).join('')}</select></label>
   <label class="field inline" for="t-veh"><span>Fahrzeug</span><select id="t-veh" data-adm="tveh"><option value="all">Alle Fahrzeuge</option>${vehOpts.map(v=>`<option value="${v.id}" ${tv===v.id?'selected':''}>${v.kind==='geraet'?esc(v.model):`Nr. ${v.nr} · ${esc(v.model)} · ${v.plate}`}</option>`).join('')}</select></label>
   ${active?`<button class="linkbtn" data-act="treset">Filter zurücksetzen</button>`:''}</div>
@@ -2415,6 +2443,255 @@ function koAlert(){
   return `<section class="apanel kmalert ko-alert"><span class="ko-aic">${ic('ck')}</span><div class="ko-ab"><h2>Quartalskontrolle ${CUR}: ${done} von ${k.t} Fahrzeugen kontrolliert</h2><p class="hint">${k.fa?`Noch ${k.fa} Fahrzeuge offen, Frist ${koQEnd()}.`:'Alle Fahrzeuge sind kontrolliert.'} ${open?open+' offene Mängel aus den Kontrollen.':'Keine offenen Mängel.'}</p><div class="ko-prog"><b style="width:${k.t?Math.round(done/k.t*100):0}%"></b></div><div class="ko-btns">${k.fa?koStart(null):''}<button class="secondary sm" data-act="aview" data-v="kontrollen">Zum Dashboard</button></div></div></section>`;
 }
 
+/* ---------- Monatsrechnung Tankkarten: PDF lesen ---------- */
+const TB_PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const TB_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let tbPdfjsP=null;
+function tbLoadPdfjs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(tbPdfjsP)return tbPdfjsP;
+  tbPdfjsP=new Promise((ok,ko)=>{const s=document.createElement('script');s.src=TB_PDFJS;s.onload=()=>{if(!window.pdfjsLib)return ko(new Error('pdf.js fehlt'));window.pdfjsLib.GlobalWorkerOptions.workerSrc=TB_WORKER;ok(window.pdfjsLib);};s.onerror=()=>{tbPdfjsP=null;ko(new Error('pdf.js nicht ladbar'));};document.head.appendChild(s);});
+  return tbPdfjsP;
+}
+async function tbPdfLines(buf){
+  const lib=await tbLoadPdfjs();
+  const doc=await lib.getDocument({data:buf.slice(0)}).promise;const out=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const pg=await doc.getPage(p);const tc=await pg.getTextContent();
+    const rows=[];
+    tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;const x=it.transform[4],y=it.transform[5];let r=rows.find(r=>Math.abs(r.y-y)<2.5);if(!r){r={y,it:[]};rows.push(r);}r.it.push({x,w:it.width||0,s:it.str});});
+    rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.it.sort((a,b)=>a.x-b.x);let s='',end=null;r.it.forEach(i=>{if(end!=null){const g=i.x-end;s+=g>5?'   ':(g>0.8?' ':'');}s+=i.s;end=i.x+i.w;});out.push({p,s:s.replace(/\s+$/,'')});});
+  }
+  return out;
+}
+const tbNum=s=>parseFloat(String(s).replace(/['’\s]/g,''));
+const TB_PROD={'Diesel':'diesel','Bleifrei 95':'b95','Ult. BLF 98':'b98','AdBlue®':'adblue','AdBlue':'adblue'};
+function tbParse(lines){
+  const all=lines.map(l=>l.s).join('\n');
+  const g=(re)=>{const m=all.match(re);return m?m[1].trim():null;};
+  const meta={lieferant:/volenergy/i.test(all)?'volenergy':'Tankkarte',nr:g(/Rechnungsnummer\s+(\d+)/),datum:g(/Rechnungsdatum\s+(\d\d\.\d\d\.\d{4})/),bis:g(/Ihre Bezüge bis\s+(\d\d\.\d\d\.\d{4})/),total:tbNum(g(/Rechnungsbetrag in CHF\s+([\d'’.]+)/)||'NaN'),kunde:g(/Kundennummer\s+(\d+)/)};
+  const rx=/^(\d\d\.\d\d\.\d{4})\s+(\d\d:\d\d)\s+(.+?)\s{2,}(Diesel|Bleifrei 95|Ult\. BLF 98|AdBlue®?)\s+([\d'’.]+)\s+([\d.]+)\s+([\d'’.]+)$/;
+  const rk=/^Karte\s+(\d+)\s+(.+?)\s{2,}([\d'’.]+)$/;
+  const tx=[],cards=[];let cur=[];
+  lines.forEach(({p,s})=>{const t=s.trim();let m=t.match(rx);
+    if(m){const [d,mo,y]=m[1].split('.');cur.push({d:`${y}-${mo}-${d}`,t:m[2],ort:m[3].replace(/\s+/g,' ').trim(),prod:m[4],fuel:TB_PROD[m[4]]||'andere',l:tbNum(m[5]),p:tbNum(m[6]),chf:tbNum(m[7]),page:p});return;}
+    m=t.match(rk);
+    if(m){const card=m[1],label=m[2].replace(/\s+/g,' ').trim(),total=tbNum(m[3]);const sum=Math.round(cur.reduce((a,x)=>a+x.chf,0)*100)/100;cards.push({card,label,total,n:cur.length,sum,ok:Math.abs(sum-total)<0.011});cur.forEach(x=>{x.card=card;x.label=label;});tx.push(...cur);cur=[];}
+  });
+  const sum=Math.round(tx.reduce((a,x)=>a+x.chf,0)*100)/100;
+  const rechen=tx.filter(x=>x.fuel!=='adblue'&&Math.abs(Math.round(x.l*x.p*100)/100-x.chf)>0.05);
+  return {meta,tx,cards,sum,sumOk:isFinite(meta.total)&&Math.abs(sum-meta.total)<0.011,orphanLines:cur.length,rechen};
+}
+
+/* ---------- Monatsrechnung Tankkarten: Abgleich mit den Tankprotokollen ---------- */
+const TB_MAIL_TO='personal@clean-service.ch',TB_MAIL_CC='logistik@clean-service.ch';
+const TB_FUEL_L={diesel:'Diesel',b95:'Benzin 95',b98:'Benzin 98',strom:'Strom',adblue:'AdBlue',andere:'Andere'};
+const tbF2=n=>Number(n).toLocaleString('de-CH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const tbDs=s=>{const [y,m,d]=s.split('-');return `${d}.${m}.${y}`;};
+const tbDay=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const tbKey=x=>`${x.card}|${x.d}|${x.t}|${x.chf}`;
+function tbVehByNr(nr){return [...VEH,...VEH_GONE].find(v=>String(v.nr)===String(nr))||null;}
+// Zuordnung einer Karte: gespeichert > Fahrzeugnummer auf der Karte > Personalnummer/Name = Personalkarte > offen
+function tbCardInfo(card,label){
+  const m=(S.tbKarten||{})[card];
+  if(m&&m.typ==='veh'&&m.veh){const v=[GERAET,...VEH,...VEH_GONE].find(x=>x.id===m.veh);if(v)return {typ:'veh',v,src:'gespeichert'};}
+  if(m&&m.typ==='personal')return {typ:'personal',src:'gespeichert'};
+  if(m&&m.typ==='geraete')return {typ:'veh',v:GERAET,src:'gespeichert'};
+  const n=String(label||'').trim().match(/^(?:NR\.?\s*)?(\d{1,3})$/i);
+  if(n){const v=tbVehByNr(n[1]);if(v)return {typ:'veh',v,src:'karte'};}
+  if(/^\d{4,6}$/.test(String(label).trim()))return {typ:'personal',src:'personalnummer'};
+  if(/^[A-Za-zÀ-ÿ'-]{2,}(\s+[A-Za-zÀ-ÿ'-]{2,})+$/.test(String(label).trim()))return {typ:'personal',src:'name'};
+  return {typ:'offen'};
+}
+function tbMonthRange(id){const [y,m]=id.split('-').map(Number);return [new Date(y,m-1,1),new Date(y,m,1)];}
+function tbCompute(A){
+  const [m0,m1]=tbMonthRange(A.id);const lo=new Date(m0.getTime()-2*864e5),hi=new Date(m1.getTime()+4*864e5);
+  const apps=S.history.filter(h=>h.kind==='tanken'&&h.at>=lo&&h.at<hi);
+  const used=new Map();const done=A.done||{};
+  const items=A.tx.map(x=>{const ci=tbCardInfo(x.card,x.label);return Object.assign({},x,{key:tbKey(x),ci,v:ci.typ==='veh'?ci.v:null,app:null});});
+  const cand=(x,h,exact)=>{if(used.has(h.id))return false;const dd=Math.round((new Date(h.at.getFullYear(),h.at.getMonth(),h.at.getDate())-tbDay(x.d))/864e5);if(dd<-1||dd>3)return false;const dl=Math.abs((+h.liter||0)-x.l),dc=Math.abs((+h.chf||0)-x.chf);return exact?(dl<0.02&&dc<0.02):((dl<0.02||dc<0.02)||(dl<=1&&dc<=2));};
+  [[true,true],[true,false],[false,true],[false,false]].forEach(([same,exact])=>{
+    items.forEach(x=>{if(x.app||x.fuel==='adblue'||x.ci.typ==='personal')return;if(!same&&x.ci.typ==='veh'&&!exact)return;
+      const cs=apps.filter(h=>cand(x,h,exact)&&(x.v?((h.veh===x.v.id)===same):!same));
+      if(cs.length){const h=cs.sort((a,b)=>Math.abs(a.at-tbDay(x.d))-Math.abs(b.at-tbDay(x.d)))[0];used.set(h.id,x.key);x.app=h;}});
+  });
+  const R={items,personal:[],adblue:[],ok:[],treib:[],fz:[],betrag:[],fehlt:[],karte:[],orphan:[],km:[],done};
+  items.forEach(x=>{
+    if(x.ci.typ==='personal'){R.personal.push(x);return;}
+    if(x.fuel==='adblue'){R.adblue.push(x);return;}
+    if(x.ci.typ==='offen'){R.karte.push(x);return;}
+    const h=x.app;
+    if(!h){R.fehlt.push(x);return;}
+    let bad=false;
+    if(x.v&&h.veh!==x.v.id){R.fz.push(x);bad=true;}
+    if(['diesel','b95','b98'].includes(x.fuel)&&h.fuel&&h.fuel!==x.fuel&&!(x.fuel==='b98'&&h.fuel==='b95')){R.treib.push(x);bad=true;}
+    if(Math.abs((+h.liter||0)-x.l)>=0.02||Math.abs((+h.chf||0)-x.chf)>=0.02){R.betrag.push(x);bad=true;}
+    if(!bad)R.ok.push(x);
+  });
+  const [ms,me]=tbMonthRange(A.id);
+  R.orphan=apps.filter(h=>!used.has(h.id)&&h.at>=ms&&h.at<me&&h.veh!=='vgeraete').sort((a,b)=>a.at-b.at);
+  // Km-Stand: steigt von Tankung zu Tankung plausibel?
+  const byV={};apps.filter(h=>h.at>=ms&&h.at<me&&Number.isFinite(+h.km)&&+h.km>0).forEach(h=>{(byV[h.veh]=byV[h.veh]||[]).push(h);});
+  Object.entries(byV).forEach(([vid,L])=>{L.sort((a,b)=>a.at-b.at);const prob=[];for(let i=1;i<L.length;i++){const d=+L[i].km-+L[i-1].km;if(d<0)prob.push('Km-Stand sinkt ('+fmtKm(+L[i-1].km)+' → '+fmtKm(+L[i].km)+')');else if(d>2500)prob.push('Sprung um '+fmtKm(d)+' km ('+dS(L[i-1].at)+' → '+dS(L[i].at)+')');else if(d<=2)prob.push('nur +'+d+' km zwischen zwei Tankungen');}
+    if(prob.length)R.km.push({key:'km|'+vid,v:veh(vid),seq:L.map(h=>fmtKm(+h.km)),prob:[...new Set(prob)]});});
+  const isDone=k=>!!done[k];
+  R.open={treib:R.treib.filter(x=>!isDone(x.key)),fz:R.fz.filter(x=>!isDone(x.key)),betrag:R.betrag.filter(x=>!isDone(x.key)),fehlt:R.fehlt.filter(x=>!isDone(x.key)),orphan:R.orphan.filter(h=>!isDone('o|'+h.id)),km:R.km.filter(k=>!isDone(k.key))};
+  R.nErr=R.open.treib.length+R.open.fz.length+R.open.betrag.length+R.open.fehlt.length+R.open.orphan.length;
+  R.sum=k=>Math.round(R[k].reduce((a,x)=>a+x.chf,0)*100)/100;
+  return R;
+}
+async function loadTankabgleich(){try{const d=await rpc('fz_tankabgleich_list',{p_code:S.adminCode})||{};S.tbList=d.abgleiche||[];S.tbKarten=d.karten||{};S.tbLoaded=true;}catch(e){console.warn(e);S.tbList=S.tbList||[];S.tbKarten=S.tbKarten||{};}if(S.account==='admin'&&S.aView==='tanken')render();}
+async function tbSave(A,withPdf){
+  const data={meta:A.meta,tx:A.tx,cards:A.cards,sumOk:A.sumOk,done:A.done||{},datei:A.datei,eingelesen:A.eingelesen};
+  await rpc('fz_tankabgleich_save',{p_code:S.adminCode,p_id:A.id,p_data:data,p_pdf:withPdf&&A.pdfB64?A.pdfB64:null});
+  const i=(S.tbList||[]).findIndex(x=>x.id===A.id);const row=Object.assign({id:A.id,hasPdf:true},data);if(i>=0)S.tbList[i]=row;else (S.tbList=S.tbList||[]).unshift(row);
+}
+async function tbReadFile(f){
+  if(!f)return;
+  if(!/pdf$/i.test(f.type)&&!/\.pdf$/i.test(f.name)){S.tbM={t:'drop',err:'Bitte die Rechnung als PDF wählen.'};render();return;}
+  if(f.size>10*1024*1024){S.tbM={t:'drop',err:'Die Datei ist grösser als 10 MB.'};render();return;}
+  S.tbM={t:'drop',busy:true,name:f.name};render();
+  try{
+    const buf=await f.arrayBuffer();const P=tbParse(await tbPdfLines(buf));
+    if(!P.tx.length){S.tbM={t:'drop',err:'In dieser Datei wurden keine Tankungen gefunden. Ist es die Monatsrechnung der Tankkarten (volenergy)?'};render();return;}
+    const [d,m,y]=(P.meta.bis||P.meta.datum||'').split('.');const id=y&&m?`${y}-${m}`:(P.tx[0].d.slice(0,7));
+    const A={id,meta:P.meta,tx:P.tx,cards:P.cards,sumOk:P.sumOk&&P.cards.every(c=>c.ok),rechen:P.rechen,done:((S.tbList||[]).find(x=>x.id===id)||{}).done||{},datei:f.name,eingelesen:new Date().toISOString(),pdfB64:u8b64(new Uint8Array(buf)),pdfBuf:buf};
+    S.tbA=A;S.tbM=null;S.tbOpen=true;render();top0();
+    tbSave(A,true).then(()=>toast('Abgleich gespeichert')).catch(e=>{console.warn(e);toast('Abgleich konnte nicht gespeichert werden – bitte Verbindung prüfen');});
+  }catch(e){console.warn(e);S.tbM={t:'drop',err:'Die PDF-Datei konnte nicht gelesen werden. Bitte nochmals versuchen.'};render();}
+}
+async function tbOpenSaved(id){
+  const r=(S.tbList||[]).find(x=>x.id===id);if(!r)return;
+  S.tbA={id:r.id,meta:r.meta,tx:r.tx,cards:r.cards||[],sumOk:r.sumOk,done:r.done||{},datei:r.datei,eingelesen:r.eingelesen,pdfB64:null};S.tbOpen=true;render();top0();
+}
+async function tbPdfBytes(A){
+  if(A.pdfBuf)return new Uint8Array(A.pdfBuf);
+  if(!A.pdfB64)A.pdfB64=await rpc('fz_tankabgleich_pdf',{p_code:S.adminCode,p_id:A.id});
+  if(!A.pdfB64)return null;const bin=atob(A.pdfB64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;
+}
+async function tbPageB64(A,page){
+  try{const bytes=await tbPdfBytes(A);if(!bytes||!window.PDFLib)return null;const src=await PDFLib.PDFDocument.load(bytes);const out=await PDFLib.PDFDocument.create();const [pg]=await out.copyPages(src,[Math.max(0,(page||1)-1)]);out.addPage(pg);return u8b64(await out.save());}catch(e){console.warn(e);return null;}
+}
+function tbDriver(x){
+  if(!x.v||!x.v.plate)return null;
+  try{const m=busMatch({kontrollschild:x.v.plate,datum:x.d,uhrzeit:x.t});if(m&&m.verdict&&m.verdict.who)return {who:m.verdict.who,pn:m.verdict.pn,level:m.verdict.level,grund:m.verdict.grund||[]};}catch(e){console.warn(e);}
+  return null;
+}
+function tbMailHtml(A,x,drv){
+  const vtx=x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`;
+  const d0=tbDs(new Date(tbDay(x.d).getTime()-3*864e5).toISOString().slice(0,10)),d1=tbDs(new Date(tbDay(x.d).getTime()+4*864e5).toISOString().slice(0,10));
+  const row=(l,v)=>`<tr><td style="padding:6px 12px 6px 0;color:#6A7378;width:190px;vertical-align:top">${l}</td><td style="padding:6px 0">${v}</td></tr>`;
+  const lv={sicher:'sicher',wahrscheinlich:'wahrscheinlich',unsicher:'unsicher'}[drv&&drv.level]||'';
+  return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#2B3135;line-height:1.55"><div style="background:#2BB6B7;color:#fff;border-radius:8px;padding:12px 16px;font-weight:700;margin-bottom:16px">Bitte um Fahrzeugbusse – Tankung ohne Tankprotokoll</div>
+  <p>Guten Tag</p><p>Beim Abgleich der Tankkarten-Rechnung ${esc(tbMonthName(A.id))} (${esc(A.meta.lieferant||'Tankkarte')}${A.meta.nr?', Rechnung '+esc(A.meta.nr):''}) wurde eine Tankung gefunden, für die in der Fahrzeug-App kein Tankprotokoll erfasst wurde. Wir bitten euch, gemäss Dienstwagenreglement eine Fahrzeugbusse auszustellen.</p>
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 14px">${row('Fahrzeug',`<b>${vtx}</b>`)}${row('Tankung laut Rechnung',`${tbDs(x.d)}, ${esc(x.t)} · ${esc(x.ort)}`)}${row('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)} · Karte ${esc(x.card)}`)}${row('Fahrer laut Übernahmen',drv?`<b>${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}</b>${lv?' · Zuordnung '+lv:''}${drv.grund&&drv.grund[0]?`<br><span style="color:#6A7378;font-size:13px">${esc(drv.grund[0].replace(/der Busse/g,'der Tankung'))}</span>`:''}`:'<b>nicht bestimmbar</b> – bitte bei der Logistik nachfragen')}${row('Tankprotokoll in der App',`<span style="color:#B8433A"><b>keines</b> zwischen ${d0} und ${d1}</span>`)}${row('Ausgelöst von',`Verwaltung Fahrzeuge, ${new Date().toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'})}`)}</table>
+  <p>Die Rechnungsseite mit dieser Tankung ist als PDF angehängt.</p><p style="margin:0">Freundliche Grüsse<br>Clean Service Scaramuzzo AG · Fahrzeuge</p></div>`;
+}
+function tbMonthName(id){const [y,m]=id.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('de-CH',{month:'long',year:'numeric'});}
+async function tbSendBusse(x){
+  const A=S.tbA;const drv=tbDriver(x);const vshort=x.v.kind==='geraet'?x.v.model:`Nr. ${x.v.nr} ${x.v.plate}`;
+  const subject=`Bitte um Fahrzeugbusse · Tankprotokoll fehlt · ${vshort} · ${tbDs(x.d)}`;
+  const att=await tbPageB64(A,x.page);
+  if(!MAIL_ENDPOINT)throw new Error('Mailversand nur in der veröffentlichten App');
+  const body={to:TB_MAIL_TO,cc:TB_MAIL_CC,subject,html:tbMailHtml(A,x,drv)};
+  if(att){body.attachmentBase64=att;body.attachmentName=`Tankrechnung_${A.id}_Nr${x.v.nr}_${x.d.slice(8,10)}-${x.d.slice(5,7)}.pdf`.replace(/[^\w.-]/g,'');}
+  const r=await fetch(MAIL_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status));}
+  return {at:new Date().toISOString(),who:drv?drv.who:null,pn:drv?drv.pn:null};
+}
+
+/* Darstellung */
+function tbVcell(v,x){if(!v)return `<b>Karte ${esc(x.card)}</b><small>Aufdruck «${esc(x.label)}»</small>`;return v.kind==='geraet'?`<b>${esc(v.model)}</b>`:`${plate(v)}<small>Nr. ${esc(v.nr)} ${esc(v.model)}</small>`;}
+const tbApp=h=>h?`${dS(h.at)}<small>${tbF2(+h.liter)} l · CHF ${tbF2(+h.chf)} · ${TB_FUEL_L[h.fuel]||esc(h.fuel||'')}</small>`:'<span class="tb-bad">kein Eintrag</span>';
+const tbRech=x=>`${tbDs(x.d).slice(0,5)} ${esc(x.t)}<small>${esc(x.ort)}</small>`;
+const tbBez=x=>`${esc(x.prod)}<small>${tbF2(x.l)} l · CHF ${tbF2(x.chf)}</small>`;
+const tbBtn=(act,key,txt,cls='secondary sm',extra='')=>`<button class="${cls}" data-act="${act}" data-k="${esc(key)}" ${extra}>${txt}</button>`;
+function tbDoneTag(d){if(!d)return'';if(d.busse)return `<span class="tb-tag g">Busse beantragt ${new Date(d.busse.at).toLocaleDateString('de-CH')}</span>`;return `<span class="tb-tag g">${esc(d.txt||'erledigt')}</span>`;}
+function tbSec(title,sub,n,cls,head,rows,empty){if(!n)return'';return `<section class="apanel tb-sec"><div class="apanel-h"><h2>${title}${sub?` <small>${sub}</small>`:''}</h2><span class="tb-tag ${cls}">${n}</span></div><div class="tbl-wrap tb-flat"><table class="tbl tb-t"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div></section>`;}
+const TB_H='<th>Fahrzeug</th><th>Rechnung</th><th>Bezug</th><th>App</th><th>Problem</th><th></th>';
+function tbView(){
+  const A=S.tbA;if(!A){S.tbOpen=false;return aTanken();}
+  const R=tbCompute(A),D=R.done;
+  const row=(x,prob,acts)=>{const d=D[x.key];return `<tr class="${d?'tb-done':''}"><td>${tbVcell(x.v,x)}</td><td>${tbRech(x)}</td><td>${tbBez(x)}</td><td>${tbApp(x.app)}</td><td>${prob}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',x.key,'Rückgängig','linkbtn'):acts}</div></td></tr>`;};
+  const sTreib=tbSec('Falscher Treibstoff in der App','laut Rechnung anders getankt',R.open.treib.length,'r',TB_H,R.treib.map(x=>row(x,`<span class="tb-tag r">App: ${TB_FUEL_L[x.app.fuel]||esc(x.app.fuel)}</span>`,tbBtn('tbfix',x.key,'Auf '+TB_FUEL_L[x.fuel]+' korrigieren','primary sm','data-w="fuel"'))).join(''));
+  const sFz=tbSec('Beim falschen Fahrzeug erfasst','',R.open.fz.length,'r',TB_H,R.fz.map(x=>{const av=veh(x.app.veh);return row(x,`<span class="tb-tag r">In der App bei ${av.kind==='geraet'?esc(av.model):'Nr. '+esc(av.nr)+' '+esc(av.model)}</span>`,tbBtn('tbfix',x.key,'Auf Nr. '+esc(x.v.nr)+' umbuchen','primary sm','data-w="veh"')+tbBtn('tbok',x.key,av.kind==='geraet'?'Ist Kanister – ok':'Ist so richtig'));}).join(''));
+  const sBetrag=tbSec('Liter oder Betrag falsch eingetippt','App-Wert gerundet oder vertippt',R.open.betrag.length,'y',TB_H,R.betrag.map(x=>row(x,`<span class="tb-tag y">Diff. CHF ${tbF2(Math.abs(x.chf-x.app.chf))} · ${tbF2(Math.abs(x.l-x.app.liter))} l</span>`,tbBtn('tbfix',x.key,'Rechnungswert übernehmen','primary sm','data-w="betrag"'))).join(''));
+  const sFehlt=tbSec('Getankt, aber nicht in der App erfasst','Busse ausstellen lassen oder als erledigt markieren',R.open.fehlt.length,'r',TB_H,R.fehlt.map(x=>{const warn=x.v&&x.v.fuel&&['diesel','b95'].includes(x.fuel)&&x.v.fuel!==x.fuel&&x.v.kind!=='geraet'?`<small class="tb-bad">${TB_FUEL_L[x.fuel]} mit der Karte eines ${x.v.fuel==='diesel'?'Diesel':'Benzin'}fahrzeugs</small>`:'';return row(x,`<span class="tb-tag r">fehlt</span>${warn}`,tbBtn('tbbusse',x.key,'Busse ausstellen lassen','primary sm')+tbBtn('tbok',x.key,'Erledigt'));}).join(''));
+  const sOrph=tbSec('In der App, aber nicht auf der Rechnung','doppelt, falsch erfasst oder anders bezahlt',R.open.orphan.length,'y','<th>Fahrzeug</th><th>App</th><th>Mitarbeiter</th><th>Problem</th><th></th>',R.orphan.map(h=>{const k='o|'+h.id,d=D[k],v=veh(h.veh);const same=S.history.some(o=>o!==h&&o.kind==='tanken'&&o.veh===h.veh&&o.at.toDateString()===h.at.toDateString());return `<tr class="${d?'tb-done':''}"><td>${v.kind==='geraet'?`<b>${esc(v.model)}</b>`:`${plate(v)}<small>Nr. ${esc(v.nr)} ${esc(v.model)}</small>`}</td><td>${tbApp(h)}</td><td>${esc(h.who||'')}</td><td><span class="tb-tag y">nicht auf der Rechnung</span>${same?'<small>am gleichen Tag noch ein Tankprotokoll – doppelt erfasst?</small>':''}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',k,'Rückgängig','linkbtn'):tbBtn('tbok',k,'Geprüft')}</div></td></tr>`;}).join(''));
+  const sKm=tbSec('Km-Stand unplausibel','aus den Tankprotokollen des Monats',R.open.km.length,'y','<th>Fahrzeug</th><th>Verlauf im Monat</th><th>Problem</th><th></th>',R.km.map(k=>{const d=D[k.key];return `<tr class="${d?'tb-done':''}"><td>${plate(k.v)}<small>Nr. ${esc(k.v.nr)} ${esc(k.v.model)}</small></td><td class="num">${k.seq.join(' → ')}</td><td>${k.prob.map(p=>`<span class="tb-tag y">${esc(p)}</span>`).join(' ')}</td><td><div class="tb-act">${d?tbDoneTag(d)+tbBtn('tbundo',k.key,'Rückgängig','linkbtn'):tbBtn('tbok',k.key,'Geprüft')}</div></td></tr>`;}).join(''));
+  const cg={};R.karte.forEach(x=>{(cg[x.card]=cg[x.card]||{card:x.card,label:x.label,xs:[]}).xs.push(x);});
+  const vopts=[GERAET,...VEH.filter(v=>!isTrailer(v))];
+  const sKarte=Object.keys(cg).length?`<section class="apanel tb-sec"><div class="apanel-h"><h2>Karten ohne Fahrzeug in der App <small>einmal zuordnen, dann merkt es sich die App</small></h2><span class="tb-tag n">${Object.keys(cg).length} Karten</span></div><div class="tbl-wrap tb-flat"><table class="tbl tb-t"><thead><tr><th>Karte</th><th class="r">Bezüge</th><th>Treibstoff</th><th>Zuordnung</th></tr></thead><tbody>${Object.values(cg).map(c=>`<tr><td><b>Karte ${esc(c.card)}</b><small>Aufdruck «${esc(c.label)}»</small></td><td class="r num">${c.xs.length}<small>CHF ${tbF2(c.xs.reduce((a,x)=>a+x.chf,0))}</small></td><td>${[...new Set(c.xs.map(x=>esc(x.prod)))].join(', ')}</td><td><label class="vh" for="tbk-${esc(c.card)}">Zuordnung Karte ${esc(c.card)}</label><select id="tbk-${esc(c.card)}" class="tb-sel" data-tbkarte="${esc(c.card)}" data-label="${esc(c.label)}"><option value="">Bitte wählen …</option><option value="personal">Personalkarte (nicht prüfen)</option>${vopts.map(v=>`<option value="${v.id}">${v.kind==='geraet'?esc(v.model):`Nr. ${esc(v.nr)} · ${esc(v.model)} · ${esc(v.plate)}`}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div></section>`:'';
+  const pers={};R.personal.forEach(x=>{(pers[x.card]=pers[x.card]||{label:x.label,n:0,c:0});pers[x.card].n++;pers[x.card].c+=x.chf;});
+  const persTxt=Object.keys(pers).length?`<p class="hint tb-pers">Personalkarten nicht berücksichtigt: ${Object.entries(pers).map(([c,p])=>`Karte ${esc(c)} «${esc(p.label)}» (${p.n} ${p.n===1?'Bezug':'Bezüge'}, CHF ${tbF2(p.c)})`).join(' · ')} <button class="linkbtn" data-act="tbkarten">Karten verwalten</button></p>`:'';
+  const checked=A.tx.length-R.personal.length;
+  const checks=['<b>Jede Tankung der Rechnung</b> hat ein Tankprotokoll in der App (gleiches Fahrzeug, Datum bis 3 Tage später, Liter und Betrag)','<b>Liter und Betrag</b> stimmen auf den Rappen','<b>Treibstoff</b> stimmt mit der Rechnung überein','<b>Richtiges Fahrzeug:</b> Kartenaufdruck «34» = Fahrzeug Nr. 34','<b>Tankprotokolle ohne Rechnungszeile</b> (doppelt, falsch oder anders bezahlt)','<b>Km-Stand</b> steigt plausibel von Tankung zu Tankung','<b>Summen:</b> jede Karte und das Total der Rechnung gehen auf','<b>Literpreis × Liter</b> = Betrag','<b>Personalkarten</b> (Personalnummer oder Name auf der Karte) werden übersprungen'];
+  const nOk=R.ok.length;
+  const sumOkTxt=A.sumOk?'Summen ✓':'<span class="tb-bad">Summen gehen nicht auf</span>';
+  const appSum=S.history.filter(h=>{const [a,b]=tbMonthRange(A.id);return h.kind==='tanken'&&h.at>=a&&h.at<b;}).reduce((a,h)=>a+(+h.chf||0),0);
+  const allOk=!R.nErr&&!R.open.km.length&&!R.karte.length;
+  return `<button class="linkbtn" data-act="tbclose">‹ Tankvorgänge</button>`+aHead(`Abgleich Monatsrechnung ${esc(tbMonthName(A.id))}`,`${esc(A.meta.lieferant||'Tankkarte')}${A.meta.nr?' · Rechnung '+esc(A.meta.nr):''}${A.meta.datum?' vom '+esc(A.meta.datum):''} · ${A.cards.length} Karten · ${A.tx.length} Bezüge${A.eingelesen?' · eingelesen am '+new Date(A.eingelesen).toLocaleDateString('de-CH'):''}`,`<div class="tb-headbtns"><button class="secondary sm" data-act="tbnew">Andere Rechnung einlesen</button></div>`)+persTxt+
+  `<div class="tb-k"><div><span>Rechnung</span><b class="num">CHF ${tbF2(A.meta.total||0)}</b><small>${checked} Bezüge geprüft · ${sumOkTxt}</small></div><div class="g"><span>Stimmt überein</span><b>${nOk}</b><small>CHF ${tbF2(R.sum('ok'))}</small></div><div class="${R.nErr?'r':'g'}"><span>Fehler offen</span><b>${R.nErr}</b><small>${R.nErr?'müssen korrigiert werden':'alles erledigt'}</small></div><div class="${R.karte.length?'y':'g'}"><span>Karten zuordnen</span><b>${Object.keys(cg).length}</b><small>${R.karte.length} Bezüge · CHF ${tbF2(R.sum('karte'))}</small></div></div>
+  ${allOk?`<div class="notice n-normal" style="margin-bottom:16px">Alles stimmt: Jede Tankung der Rechnung hat ein passendes Tankprotokoll.</div>`:''}
+  <div class="tb-top"><section class="apanel pad"><h2 class="h3">Was geprüft wird</h2><ul class="tb-chk">${checks.map((c,i)=>`<li><i>${i+1}</i><span>${c}</span></li>`).join('')}</ul></section>
+  <section class="apanel pad"><h2 class="h3">Summen</h2><div class="tb-sl"><span>Rechnung</span><b>CHF ${tbF2(A.meta.total||0)}</b></div><div class="tb-sl"><span>Tankprotokolle App (${esc(tbMonthName(A.id))})</span><b>CHF ${tbF2(appSum)}</b></div><div class="tb-sl"><span>Personalkarten (nicht geprüft)</span><b>CHF ${tbF2(R.sum('personal'))}</b></div><div class="tb-sl"><span>Karten ohne Fahrzeug</span><b>CHF ${tbF2(R.sum('karte'))}</b></div>${R.adblue.length?`<div class="tb-sl"><span>AdBlue (nicht in der App)</span><b>CHF ${tbF2(R.sum('adblue'))}</b></div>`:''}<div class="tb-sl"><span>Nicht in der App erfasst</span><b class="${R.fehlt.length?'tb-bad':''}">CHF ${tbF2(R.sum('fehlt'))}</b></div>${(A.rechen||[]).length?`<div class="tb-sl"><span>Rechenfehler Tankstelle</span><b class="tb-bad">${A.rechen.length}</b></div>`:''}</section></div>
+  ${sTreib}${sFz}${sBetrag}${sFehlt}${sOrph}${sKm}${sKarte}`;
+}
+function tbModal(){
+  const m=S.tbM;
+  if(m.t==='drop')return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-mh"><h2 id="tb-mh">Monatsrechnung einlesen</h2><p class="hint">PDF der Tankkarten-Rechnung hierher ziehen. Die App liest jede Tankung und gleicht sie mit allen Tankprotokollen des Monats ab.</p>
+  <label class="tb-drop ${m.busy?'busy':''}" for="tb-file" id="tb-drop">${m.busy?`<span class="kmspin" aria-hidden="true"></span><b>Rechnung wird gelesen …</b><span class="hint">${esc(m.name||'')}</span>`:`${ic("clip")}<b>PDF hierher ziehen</b><span class="hint">oder antippen, um die Datei auszuwählen · bis 10 MB</span>`}<input id="tb-file" class="vh" type="file" accept="application/pdf,.pdf" data-tbfile="1" ${m.busy?'disabled':''}></label>
+  ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<p class="hint small">An den Tankprotokollen ändert sich nichts, bis du einen Fehler selbst korrigierst. Der Abgleich wird mit dem PDF gespeichert.</p>
+  ${(S.tbList||[]).length?`<div class="tb-prev"><span class="hint small">Frühere Abgleiche:</span>${S.tbList.map(x=>`<button class="chip" data-act="tbopen" data-id="${esc(x.id)}">${esc(tbMonthName(x.id))}</button>`).join('')}</div>`:''}
+  <div class="frow"><button class="secondary" data-act="tbmclose">Schliessen</button></div></div>`;
+  if(m.t==='busse'){const x=tbCompute(S.tbA).items.find(i=>i.key===m.k);if(!x)return'';const drv=tbDriver(x);
+    const r=(l,v)=>`<div class="tb-sl"><span>${l}</span><b>${v}</b></div>`;
+    return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-bh"><h2 id="tb-bh">Busse ausstellen lassen?</h2><p class="hint">Für die fehlende Tankprotokoll-Erfassung geht eine Mail an die Personalabteilung mit der Bitte um eine Fahrzeugbusse.</p>
+    <div class="apanel pad tb-box">${r('Fahrzeug',x.v.kind==='geraet'?esc(x.v.model):`Nr. ${esc(x.v.nr)} ${esc(x.v.model)} · ${esc(x.v.plate)}`)}${r('Tankung',`${tbDs(x.d)} ${esc(x.t)} · ${esc(x.ort)}`)}${r('Bezug',`${esc(x.prod)} ${tbF2(x.l)} l · CHF ${tbF2(x.chf)}`)}${r('Fahrer laut Übernahmen',drv?`${esc(drv.who)}${drv.pn?' (PN '+esc(drv.pn)+')':''}`:'nicht bestimmbar')}${r('An',TB_MAIL_TO)}${r('Cc',TB_MAIL_CC)}</div>
+    ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<div class="frow"><button class="secondary" data-act="tbmclose" ${m.busy?'disabled':''}>Abbrechen</button><button class="primary" data-act="tbbussego" data-k="${esc(m.k)}" ${m.busy?'disabled':''}>${m.busy?'Wird gesendet …':'Ja, Busse ausstellen lassen'}</button></div></div>`;}
+  if(m.t==='karten'){const ks=Object.entries(S.tbKarten||{});const vlab=d=>{if(d.typ==='personal')return 'Personalkarte';const v=[GERAET,...VEH,...VEH_GONE].find(x=>x.id===d.veh);return v?(v.kind==='geraet'?v.model:`Nr. ${v.nr} ${v.model}`):'?';};
+    return `<div class="scrim top" data-act="tbmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="tb-kh"><h2 id="tb-kh">Gespeicherte Karten</h2><p class="hint">Karten mit Fahrzeugnummer auf dem Aufdruck brauchen keine Zuordnung. Hier stehen nur die von Hand zugeordneten.</p>
+    ${ks.length?`<ul class="tb-kl">${ks.map(([c,d])=>`<li><span><b>Karte ${esc(c)}</b><small>${d.label?'Aufdruck «'+esc(d.label)+'»':''}</small></span><span>${esc(vlab(d))}</span><button class="linkbtn" data-act="tbkdel" data-c="${esc(c)}">Entfernen</button></li>`).join('')}</ul>`:'<p class="empty">Noch keine Karten gespeichert.</p>'}
+    <div class="frow"><button class="secondary" data-act="tbmclose">Schliessen</button></div></div>`;}
+  return '';
+}
+async function tbMark(k,val){const A=S.tbA;A.done=A.done||{};if(val)A.done[k]=val;else delete A.done[k];render();try{await tbSave(A,false);}catch(e){console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}}
+Object.assign(A,{
+  tbnew:()=>{S.tbM={t:'drop'};render();},
+  tbmclose:()=>{if(S.tbM&&S.tbM.busy)return;S.tbM=null;render();},
+  tbclose:()=>{S.tbOpen=false;render();top0();},
+  tbopen:b=>{S.tbM=null;tbOpenSaved(b.dataset.id);},
+  tbkarten:()=>{S.tbM={t:'karten'};render();},
+  tbkdel:async b=>{const c=b.dataset.c;const prev=S.tbKarten[c];delete S.tbKarten[c];render();try{await rpc('fz_tankkarte_set',{p_code:S.adminCode,p_card:c,p_data:null});toast('Karte entfernt');}catch(e){S.tbKarten[c]=prev;render();toast('Speichern fehlgeschlagen');}},
+  tbok:b=>{const k=b.dataset.k;tbMark(k,{txt:k.startsWith('o|')||k.startsWith('km|')?'geprüft':'erledigt',at:new Date().toISOString()});},
+  tbundo:b=>tbMark(b.dataset.k,null),
+  tbfix:async b=>{
+    const k=b.dataset.k,w=b.dataset.w,x=tbCompute(S.tbA).items.find(i=>i.key===k);if(!x||!x.app)return;const h=x.app;
+    const patch=w==='fuel'?{fuel:x.fuel}:w==='veh'?{veh:x.v.id}:{liter:x.l,chf:x.chf};
+    const prev={fuel:h.fuel,veh:h.veh,liter:h.liter,chf:h.chf};
+    patch.tbFix=Object.assign({},h.tbFix||{},{[w]:{alt:w==='fuel'?h.fuel:w==='veh'?h.veh:{liter:h.liter,chf:h.chf},at:new Date().toISOString(),rechnung:S.tbA.meta.nr||S.tbA.id}});
+    Object.assign(h,patch);render();
+    try{await rpc('fz_tank_fix',{p_code:S.adminCode,p_id:h.id,p_patch:patch});toast(w==='fuel'?'Treibstoff korrigiert':w==='veh'?'Auf Nr. '+x.v.nr+' umgebucht':'Rechnungswert übernommen');}
+    catch(e){console.warn(e);Object.assign(h,prev);render();toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}
+  },
+  tbbusse:b=>{S.tbM={t:'busse',k:b.dataset.k};render();},
+  tbbussego:async b=>{
+    const k=b.dataset.k,x=tbCompute(S.tbA).items.find(i=>i.key===k);if(!x)return;S.tbM.busy=true;S.tbM.err='';render();
+    try{const r=await tbSendBusse(x);S.tbM=null;await tbMark(k,{busse:r,at:r.at});toast('Mail an die Personalabteilung gesendet');}
+    catch(e){console.warn(e);S.tbM={t:'busse',k,err:'Die Mail konnte nicht gesendet werden. Bitte Verbindung prüfen und nochmals versuchen.'};render();}
+  }
+});
+app.addEventListener('change',async e=>{const x=e.target;if(!x.dataset)return;
+  if(x.dataset.tbfile&&x.files&&x.files[0]){tbReadFile(x.files[0]);return;}
+  if(x.dataset.tbkarte!==undefined){const c=x.dataset.tbkarte,val=x.value;if(!val)return;const data=val==='personal'?{typ:'personal',label:x.dataset.label}:{typ:'veh',veh:val,label:x.dataset.label};
+    S.tbKarten=S.tbKarten||{};S.tbKarten[c]=data;render();
+    try{await rpc('fz_tankkarte_set',{p_code:S.adminCode,p_card:c,p_data:data});toast('Karte '+c+' gespeichert');}catch(err){console.warn(err);delete S.tbKarten[c];render();toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}}
+});
+['dragover','dragenter'].forEach(ev=>document.addEventListener(ev,e=>{if(!S.tbM||S.tbM.t!=='drop'||S.tbM.busy)return;e.preventDefault();const d=document.getElementById('tb-drop');if(d)d.classList.add('over');}));
+document.addEventListener('dragleave',e=>{const d=document.getElementById('tb-drop');if(d&&!d.contains(e.relatedTarget))d.classList.remove('over');});
+document.addEventListener('drop',e=>{if(!S.tbM||S.tbM.t!=='drop')return;e.preventDefault();if(S.tbM.busy)return;const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)tbReadFile(f);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.tbM&&!S.tbM.busy){S.tbM=null;render();}});
+
 function renderAdmin(){
   const V={dash:aDash,meldungen:aMeldungen,fahrzeuge:aFahrzeuge,fahrzeug:aFahrzeug,tanken:aTanken,uebernahmen:aUeb,kontrollen:aKontrollen,bussen:aBussen,users:aUsers,settings:aSettings};
   return aShell((V[S.aView]||aDash)());
@@ -2839,6 +3116,7 @@ async function loadAdmin(quiet){
     S.dbState='ok';S.dbAt=new Date();
     if(!quiet||!S.busLoaded)loadBussen();
     if(!quiet||!S.koLoaded)loadKontrollen();
+    if(!quiet||!S.tbLoaded)loadTankabgleich();
   }catch(e){console.warn(e);S.dbState='fehler';}
   const a=document.activeElement;const typing=a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');
   if(S.account==='admin'&&!(quiet&&typing))render();
