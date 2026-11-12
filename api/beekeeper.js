@@ -1,5 +1,6 @@
 // Vercel Serverless Function: /api/beekeeper
 // Schickt eine Chat-Nachricht des HR BOT an eine Mitarbeiterin / einen Mitarbeiter in Beekeeper.
+// Versand über die Beekeeper Chats 2.0 API (Chats 1.0 «conversations» liefert HTTP 410).
 // Wird aus der Verwaltung der Fahrzeug-App aufgerufen (Kulanz / Busse beim Tankrechnungs-Abgleich, Testnachricht).
 //
 // Environment Variables in Vercel:
@@ -78,11 +79,23 @@ module.exports = async (req, res) => {
   try {
     const f = await findUser(call, pn, name);
     if (!f.user) return res.status(f.status === 401 || f.status === 403 ? 502 : 404).json({ error: f.error, mehrdeutig: f.mehrdeutig });
+    // Chats 2.0: POST /api/2/chats/users/{userId}/messages  (öffnet den Einzelchat automatisch)
+    const ids = [...new Set([f.user.id, f.user.uuid, f.user.user_id].filter(Boolean).map(String))];
+    let last = null;
+    for (const uid of ids) {
+      const m = await call('POST', 'chats/users/' + encodeURIComponent(uid) + '/messages?apply_rich_text=false', { body: text });
+      if (m.ok) return res.status(200).json({ success: true, an: nameOf(f.user), via: f.via });
+      last = m;
+      if (m.status === 401 || m.status === 403) break;
+    }
+    // Fallback: alte Chats-1.0-API (falls der Tenant noch darauf läuft)
     const c = await call('GET', 'conversations/by_user/' + encodeURIComponent(f.user.id));
-    if (!c.ok || !c.data || !c.data.id) return res.status(502).json({ error: 'Chat mit der Person konnte nicht geöffnet werden (HTTP ' + c.status + ')' });
-    const m = await call('POST', 'conversations/' + encodeURIComponent(c.data.id) + '/messages', { text });
-    if (!m.ok) return res.status(502).json({ error: 'Nachricht konnte nicht gesendet werden (HTTP ' + m.status + ')' });
-    return res.status(200).json({ success: true, an: nameOf(f.user), via: f.via });
+    if (c.ok && c.data && c.data.id) {
+      const m = await call('POST', 'conversations/' + encodeURIComponent(c.data.id) + '/messages', { text });
+      if (m.ok) return res.status(200).json({ success: true, an: nameOf(f.user), via: f.via });
+    }
+    const why = last && last.data && (last.data.message || last.data.error || last.data.detail);
+    return res.status(502).json({ error: 'Nachricht konnte nicht gesendet werden (HTTP ' + (last ? last.status : c.status) + (why ? ': ' + String(why).slice(0, 160) : '') + ')' });
   } catch (e) {
     return res.status(502).json({ error: 'Beekeeper nicht erreichbar' });
   }
