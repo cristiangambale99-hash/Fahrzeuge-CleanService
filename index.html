@@ -690,6 +690,7 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .tb-tag.v{background:#EFEAFB;color:#5B3FB0}.tb-bk{display:block;color:var(--ok);font-size:12px;width:100%;text-align:right}.tb-rep{margin:2px 0}
 .tb-alert{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--danger);background:var(--danger-soft);padding:14px 16px;margin:0 0 16px}.tb-alert h2{margin:0 0 4px;font-size:16px;color:var(--danger)}.tb-alert p{margin:0 0 4px}.tb-ai{flex:none;width:28px;height:28px;border-radius:50%;background:var(--danger);color:#fff;display:grid;place-items:center;font-weight:700}
 .tb-msgh{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}.tb-msg{white-space:pre-wrap;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5}.tb-msgd{margin:10px 0}.tb-msgd summary{cursor:pointer;color:var(--accent,#2BB6B7);font-weight:600;font-size:14px}.tb-msgd .tb-msg{margin-top:8px}
+.kmb-f{display:grid;grid-template-columns:1fr 160px;gap:12px;margin:14px 0 4px}.kmb-f .field{margin:0}@media(max-width:560px){.kmb-f{grid-template-columns:1fr}}.kbad{color:var(--danger)}
 .bk-test{margin-top:20px}.bk-row{display:grid;grid-template-columns:160px 1fr auto;gap:12px;align-items:end}.bk-row .field{margin:0}.bk-row button{width:auto}@media(max-width:760px){.bk-row{grid-template-columns:1fr}.bk-row button{width:100%}.tb-bk{text-align:left}}
 .tb-act{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap}.tb-act button{width:auto;white-space:nowrap}
 .tb-sel{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13.5px;background:var(--surface);max-width:100%}
@@ -2034,22 +2035,62 @@ function kmDrawer(){
     else if(k.spur.length)hint=`<div class="khint"><b>Hinweis:</b> In dieser Zeit hat nur ${esc(k.spur[0].who)} etwas mit dem Fahrzeug erfasst (${kmKind(k.spur[0])} am ${kmD(k.spur[0].at)}) – ohne gültige Übernahme.</div>`;
     else hint=`<div class="khint"><b>Keine Spur:</b> In dieser Zeit hat niemand etwas mit dem Fahrzeug erfasst. Bitte bei ${esc(k.abg.who)} und ${esc(h.who)} nachfragen.</div>`;
   }else if(k.state==='tipp')hint=`<div class="khint">Der Km-Stand der Übernahme ist ${fmtKm(-k.diff)} km tiefer als bei der Abgabe. Wahrscheinlich hat sich jemand vertippt – bitte die Fotos vom Tacho prüfen.</div>`;
-  const who=target?target.who:(k.spur[0]&&k.spur[0].who)||'';
-  const dec=h.kmr?`<div class="notice n-normal"><b>${KMR_L[h.kmr.st]||'Erledigt'}</b>${h.kmr.who?' · '+esc(h.kmr.who):''} · ${dS(new Date(h.kmr.at))} durch ${esc(h.kmr.by||'Verwaltung')}${h.kmr.note?'<br>'+esc(h.kmr.note):''}</div><button class="secondary sm" data-act="kmset" data-st="" style="align-self:flex-start">Entscheid zurücksetzen</button>`:
-    k.state==='ok'?'':`<label class="fl" for="kmnote">Notiz (optional)</label><input id="kmnote" class="inp" placeholder="z. B. Stellungnahme erhalten, Fahrer bestätigt"><div class="kbtns"><button class="primary sm kbusse" data-act="kmset" data-st="busse" data-who="${esc(who)}">Busse CHF 100${who?' an '+esc(who):''}</button><button class="secondary sm" data-act="kmset" data-st="stellung" data-who="${esc(who)}">Um Stellungnahme bitten</button><button class="secondary sm" data-act="kmset" data-st="ok">Kein Verstoss, erledigt</button></div>`;
+  const src=target||k.spur[0]||null,who=src?src.who:'',wpn=src&&src.pn?String(src.pn):'';
+  const dec=h.kmr?`<div class="notice n-normal"><div><b>${KMR_L[h.kmr.st]||'Erledigt'}</b>${h.kmr.who?' · '+esc(h.kmr.who):''}${h.kmr.pn?' (PN '+esc(h.kmr.pn)+')':''} · ${dS(new Date(h.kmr.at))} durch ${esc(h.kmr.by||'Verwaltung')}${h.kmr.note?'<br>'+esc(h.kmr.note):''}${h.kmr.mail?'<br><small>Mail an die Personalabteilung gesendet</small>':''}${h.kmr.bk?(h.kmr.bk.ok?'<br><small>Mitarbeiter per Beekeeper informiert</small>':`<br><small class="kbad">Beekeeper-Nachricht nicht gesendet${h.kmr.bk.err?': '+esc(h.kmr.bk.err):''}</small>`):''}</div></div>${h.kmr.st==='busse'&&h.kmr.bk&&!h.kmr.bk.ok?'<button class="secondary sm" data-act="kmbkretry" style="align-self:flex-start">Beekeeper-Nachricht nochmals senden</button>':''}<button class="secondary sm" data-act="kmset" data-st="" style="align-self:flex-start">Entscheid zurücksetzen</button>`:
+    k.state==='ok'?'':`<label class="fl" for="kmnote">Notiz (optional)</label><input id="kmnote" class="inp" placeholder="z. B. Stellungnahme erhalten, Fahrer bestätigt"><div class="kbtns"><button class="primary sm kbusse" data-act="kmbusse" data-who="${esc(who)}" data-pn="${esc(wpn)}">Busse CHF 100${who?' an '+esc(who):''}</button><button class="secondary sm" data-act="kmset" data-st="ok">Kein Verstoss, erledigt</button></div>`;
   return `<div class="scrim" data-act="kmclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Km-Abgleich ${h.id}">
   <div class="drawer-h"><div><span class="ev-id">Km-Abgleich · Nr. ${esc(v.nr)} ${esc(v.model)} ${esc(v.plate||'')}</span><h2>${k.state==='abw'?fmtKm(k.diff)+' km ohne Formular':k.state==='tipp'?'Km-Stand tiefer als bei der Abgabe':'Km-Stand stimmt'} ${kmStatus(h)}</h2></div><button class="iconbtn" data-act="kmclose" aria-label="Schliessen">${ic('x')}</button></div>
-  <div class="drawer-b"><section class="apanel pad"><h3 class="h3">Was ist passiert?</h3><ul class="ktl">${tl.join('')}</ul></section>${hint}${dec}<p class="hint">Übernahme ${esc(h.id)} · Abgabe ${esc(k.abg.id)}</p></div></aside>`;
+  <div class="drawer-b"><section class="apanel pad"><h3 class="h3">Was ist passiert?</h3><ul class="ktl">${tl.join('')}</ul></section>${hint}${dec}<p class="hint">Übernahme ${esc(h.id)} · Abgabe ${esc(k.abg.id)}</p></div></aside>${S.kmB?kmBusseModal(h):''}`;
 }
+/* Busse CHF 100 bei km ohne Formular: Mail an Personal + Beekeeper */
+function kmVehTxt(v){return `Nr. ${v.nr} ${v.model}${v.plate?' · '+v.plate:''}`;}
+function kmBkText(h,name){const k=h.kmc,v=veh(h.veh);
+  return `Hallo ${name}\n\nMit dem Fahrzeug ${kmVehTxt(v)} wurden zwischen der Abgabe am ${dS(new Date(k.abg.at))} (${fmtKm(k.abg.km)} km) und der Übernahme am ${dS(h.at)} (${fmtKm(h.km)} km) ${fmtKm(k.diff)} km gefahren, ohne dass in der Fahrzeug-App ein Übernahmeformular ausgefüllt wurde.\n\nGemäss Dienstwagenreglement wird dafür eine Busse von CHF 100.– ausgestellt. Die Personalabteilung meldet sich mit den Details.\n\nBitte fülle bei jeder Übernahme und Abgabe das Formular in der Fahrzeug-App aus.\n\nPersonalabteilung`;}
+function kmMailHtml(h,name,pn,note){const k=h.kmc,v=veh(h.veh);
+  const row=(l,x)=>`<tr><td style="padding:6px 12px 6px 0;color:#6A7378;width:190px;vertical-align:top">${l}</td><td style="padding:6px 0">${x}</td></tr>`;
+  return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#2B3135;line-height:1.55"><div style="background:#2BB6B7;color:#fff;border-radius:8px;padding:12px 16px;font-weight:700;margin-bottom:16px">Bitte um Fahrzeugbusse CHF 100.– – Fahrt ohne Übernahmeformular</div>
+  <p>Guten Tag</p><p>Beim Km-Abgleich in der Fahrzeug-App wurde festgestellt, dass mit dem Fahrzeug Kilometer gefahren wurden, ohne dass jemand das Übernahmeformular ausgefüllt hat. Wir bitten euch, gemäss Dienstwagenreglement eine Fahrzeugbusse von CHF 100.– auszustellen.</p>
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 14px">${row('Mitarbeiter',`<b>${esc(name)} (PN ${esc(pn)})</b>`)}${row('Busse','<b>CHF 100.–</b>')}${row('Fahrzeug',`<b>${esc(kmVehTxt(v))}</b>`)}${row('Letzte Abgabe',`${esc(pnTxt(k.abg.who,k.abg.pn))} · ${dS(new Date(k.abg.at))} · ${fmtKm(k.abg.km)} km`)}${row('Nächste Übernahme',`${esc(pnTxt(h.who,h.pn))} · ${dS(h.at)} · ${fmtKm(h.km)} km`)}${row('Ohne Formular gefahren',`<b style="color:#B8433A">${fmtKm(k.diff)} km</b>`)}${note?row('Notiz',esc(note)):''}${row('Ausgelöst von',`${esc(S.user&&S.user.name||'Verwaltung')}, ${new Date().toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'})}`)}</table>
+  <p style="margin:0">Freundliche Grüsse<br>Clean Service Scaramuzzo AG · Fahrzeuge</p><p style="color:#6A7378;font-size:12px;margin-top:14px">Fall ${esc(h.id)} (Übernahme) · ${esc(k.abg.id)} (Abgabe)</p></div>`;}
+function kmBusseModal(h){const m=S.kmB,v=veh(h.veh),k=h.kmc;
+  return `<div class="scrim top" data-act="kmbclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="km-bh"><h2 id="km-bh">Busse CHF 100 ausstellen</h2><p class="hint">Die Personalabteilung erhält eine Mail mit der Bitte um die Busse (Kopie an die Logistik). Der Mitarbeiter erhält gleichzeitig im Beekeeper eine Nachricht vom HR BOT.</p>
+  <div class="apanel pad tb-box"><div class="tb-sl"><span>Fahrzeug</span><b>${esc(kmVehTxt(v))}</b></div><div class="tb-sl"><span>Ohne Formular</span><b>${fmtKm(k.diff)} km · ${dS(new Date(k.abg.at))} bis ${dS(h.at)}</b></div><div class="tb-sl"><span>An</span><b>${TB_MAIL_TO}</b></div><div class="tb-sl"><span>Cc</span><b>${TB_MAIL_CC}</b></div></div>
+  <div class="kmb-f"><label class="field" for="kmb-name"><span>Name des Mitarbeiters</span><input id="kmb-name" list="kmb-users" autocomplete="off" value="${esc(m.name||'')}" placeholder="Vorname Nachname" ${m.busy?'disabled':''}></label><datalist id="kmb-users">${USERS.filter(u=>u.role==='ma'&&u.pnh).map(u=>`<option value="${esc(u.name)}">`).join('')}</datalist>
+  <label class="field" for="kmb-pn"><span>Personalnummer</span><input id="kmb-pn" inputmode="numeric" autocomplete="off" value="${esc(m.pn||'')}" placeholder="z. B. 12345" ${m.busy?'disabled':''}></label></div>
+  <details class="tb-msgd"><summary>Nachricht im Beekeeper ansehen</summary><div class="tb-msg">${esc(kmBkText(h,m.name||'[Name]'))}</div></details>
+  ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<div class="frow"><button class="secondary" data-act="kmbclose" ${m.busy?'disabled':''}>Abbrechen</button><button class="primary kbusse" data-act="kmbgo" ${m.busy?'disabled':''}>${m.busy?'Wird gesendet …':'Bestätigen und senden'}</button></div></div>`;}
+
 Object.assign(A,{
   kmsel:b=>{S.kmSel=b.dataset.id;render();},
-  kmclose:()=>{S.kmSel=null;render();},
+  kmclose:()=>{S.kmSel=null;S.kmB=null;render();},
+  kmbusse:b=>{const n=document.getElementById('kmnote');S.kmB={name:b.dataset.who||'',pn:b.dataset.pn||'',note:n&&n.value.trim()||''};render();setTimeout(()=>{const f=document.getElementById(S.kmB&&S.kmB.name?'kmb-pn':'kmb-name');if(f&&!f.value)f.focus();},30);},
+  kmbclose:()=>{if(S.kmB&&S.kmB.busy)return;S.kmB=null;render();},
+  kmbgo:async()=>{const h=S.history.find(x=>x.id===S.kmSel);if(!h||!S.kmB)return;const m=S.kmB;
+    m.name=(document.getElementById('kmb-name').value||'').replace(/\s+/g,' ').trim();m.pn=(document.getElementById('kmb-pn').value||'').replace(/\D/g,'');m.err='';
+    if(!m.name){m.err='Bitte den Namen des Mitarbeiters eingeben.';render();return;}
+    if(!/^\d{3,7}$/.test(m.pn)){m.err='Bitte eine gültige Personalnummer eingeben (nur Ziffern).';render();return;}
+    const u=USERS.find(x=>x.role==='ma'&&x.pnh&&x.name.toLowerCase()===m.name.toLowerCase());
+    if(u&&(await pnHash(m.pn))!==u.pnh){m.err=`Die Personalnummer ${m.pn} gehört nicht zu ${u.name}. Bitte prüfen.`;render();return;}
+    if(u)m.name=u.name;
+    if(!MAIL_ENDPOINT){m.err='Mailversand nur in der veröffentlichten App.';render();return;}
+    m.busy=true;render();const v=veh(h.veh);
+    try{const r=await fetch(MAIL_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:TB_MAIL_TO,cc:TB_MAIL_CC,subject:`Bitte um Fahrzeugbusse CHF 100 · ohne Übernahmeformular · Nr. ${v.nr} ${v.plate||''} · ${m.name}`,html:kmMailHtml(h,m.name,m.pn,m.note)})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status));}}
+    catch(e){console.warn(e);m.busy=false;m.err='Die Mail konnte nicht gesendet werden. Bitte Verbindung prüfen und nochmals versuchen.';render();return;}
+    let bk;try{const j=await bkSend(m.pn,m.name,kmBkText(h,m.name));bk={ok:true,an:j.an||m.name,at:new Date().toISOString()};}catch(e){console.warn(e);bk={ok:false,err:e.message||'Fehler'};}
+    h.kmr={st:'busse',who:m.name,pn:m.pn,note:m.note||null,at:new Date().toISOString(),by:S.user.name,mail:true,bk};S.kmB=null;
+    rpc('fz_update',{p_code:S.adminCode,p_id:h.id,p_patch:{kmr:h.kmr}}).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
+    toast(bk.ok?'Mail gesendet · Mitarbeiter im Beekeeper informiert':'Mail gesendet · Beekeeper-Nachricht fehlgeschlagen');render();},
+  kmbkretry:async b=>{const h=S.history.find(x=>x.id===S.kmSel);if(!h||!h.kmr)return;b.disabled=true;
+    try{const j=await bkSend(h.kmr.pn,h.kmr.who,kmBkText(h,h.kmr.who));h.kmr.bk={ok:true,an:j.an||h.kmr.who,at:new Date().toISOString()};toast('Nachricht im Beekeeper gesendet');}
+    catch(e){h.kmr.bk={ok:false,err:e.message||'Fehler'};toast('Beekeeper-Nachricht fehlgeschlagen');}
+    rpc('fz_update',{p_code:S.adminCode,p_id:h.id,p_patch:{kmr:h.kmr}}).catch(()=>{});render();},
   kmset:b=>{const h=S.history.find(x=>x.id===S.kmSel);if(!h)return;const st=b.dataset.st;const n=document.getElementById('kmnote');
     h.kmr=st?{st,who:b.dataset.who||null,note:n&&n.value.trim()||null,at:new Date().toISOString(),by:S.user.name}:null;
     rpc('fz_update',{p_code:S.adminCode,p_id:h.id,p_patch:{kmr:h.kmr}}).then(()=>toast(st?KMR_L[st]+' – gespeichert':'Entscheid zurückgesetzt')).catch(e=>{console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');});
     render();}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.kmSel&&!S.modal&&!S.aSel){S.kmSel=null;render();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.kmSel&&!S.modal&&!S.aSel){if(S.kmB){if(!S.kmB.busy){S.kmB=null;render();}return;}S.kmSel=null;render();}});
 
 
 /* ===== Bussen-Finder: Busse fotografieren → Claude liest aus → App findet den Fahrer ===== */
