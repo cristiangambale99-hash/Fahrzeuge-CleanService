@@ -691,6 +691,8 @@ tr.kmrow td{background:#FFF8F7}.tbl td small{display:block;color:var(--muted);fo
 .tb-alert{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--danger);background:var(--danger-soft);padding:14px 16px;margin:0 0 16px}.tb-alert h2{margin:0 0 4px;font-size:16px;color:var(--danger)}.tb-alert p{margin:0 0 4px}.tb-ai{flex:none;width:28px;height:28px;border-radius:50%;background:var(--danger);color:#fff;display:grid;place-items:center;font-weight:700}
 .tb-msgh{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}.tb-msg{white-space:pre-wrap;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5}.tb-msgd{margin:10px 0}.tb-msgd summary{cursor:pointer;color:var(--accent,#2BB6B7);font-weight:600;font-size:14px}.tb-msgd .tb-msg{margin-top:8px}
 .kmb-f{display:grid;grid-template-columns:1fr 160px;gap:12px;margin:14px 0 4px}.kmb-f .field{margin:0}@media(max-width:560px){.kmb-f{grid-template-columns:1fr}}.kbad{color:var(--danger)}
+.feed-pdf{margin-left:auto;flex:none;width:auto;align-self:center}
+.anav-sub{padding-left:40px!important;font-size:13.5px}.anav-sub .ic{width:16px;height:16px}@media(max-width:900px){.anav-sub{padding-left:12px!important}}
 .bk-test{margin-top:20px}.bk-row{display:grid;grid-template-columns:160px 1fr auto;gap:12px;align-items:end}.bk-row .field{margin:0}.bk-row button{width:auto}@media(max-width:760px){.bk-row{grid-template-columns:1fr}.bk-row button{width:100%}.tb-bk{text-align:left}}
 .tb-act{display:flex;gap:6px;justify-content:flex-end;align-items:center;flex-wrap:wrap}.tb-act button{width:auto;white-space:nowrap}
 .tb-sel{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13.5px;background:var(--surface);max-width:100%}
@@ -1720,7 +1722,7 @@ function submit(){
     const pnh=S.user.pnh;
     if(rec.kind==='uebernahme'&&rec.sub!=='rueckgabe'&&km!=null){try{rec.kmc=kmCompare(await rpc('fz_km_check',{p_pnh:pnh,p_veh:v.id}),km);}catch(e){console.warn(e);}}
     const id=await dbInsert(rec,pnh);
-    if(id){rec.id=id;}else{rec.id='FZ-LOKAL-'+Date.now().toString(36).toUpperCase();rec._unsynced=true;const q=pendLoad();q.push({rec:fullRec(rec),pnh});pendSave(q);}
+    if(id){rec.id=id;abgabeCheck(rec);}else{rec.id='FZ-LOKAL-'+Date.now().toString(36).toUpperCase();rec._unsynced=true;const q=pendLoad();q.push({rec:fullRec(rec),pnh});pendSave(q);}
     sendMails(rec).then(()=>{if(!rec._unsynced&&rec.mails)rpc('fz_mails',{p_pnh:pnh,p_id:rec.id,p_mails:rec.mails}).catch(()=>{});});
     S.history.unshift(rec);if(km!=null)v.lastKm=Math.max(v.lastKm||0,km);
     S.last=rec;S.submitting=false;S.flow=null;S.screen='done';render();top0();
@@ -1792,7 +1794,7 @@ Object.assign(ICONS,{
   logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',
   ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'
 });
-const ADM_NAV=[['dash','Übersicht','grid'],['meldungen','Meldungen','alert'],['fahrzeuge','Fahrzeuge','van'],['tanken','Tankvorgänge','fuel'],['uebernahmen','Übernahmen','key'],['kontrollen','Kontrollen','ck'],['bussen','Bussen','clip'],['users','Mitarbeitende','users'],['settings','Benachrichtigungen','bell']];
+const ADM_NAV=[['dash','Übersicht','grid'],['meldungen','Meldungen','alert'],['fahrzeuge','Fahrzeuge','van'],['tanken','Tankvorgänge','fuel'],['uebernahmen','Übernahmen','key'],['abgaben','Abgaben','key'],['kontrollen','Kontrollen','ck'],['bussen','Bussen','clip'],['users','Mitarbeitende','users'],['settings','Benachrichtigungen','bell']];
 const ST_L={offen:'Offen',bearbeitung:'In Bearbeitung',erledigt:'Erledigt'};
 const VST_L={aktiv:'Aktiv',werkstatt:'In Werkstatt',ausser:'Ausser Betrieb'};
 const DRIVE_L={'':'Nicht erfasst',b95:'Benzin',diesel:'Diesel',strom:'Elektro'};
@@ -1816,7 +1818,7 @@ function dbInfo(){return S.dbState==='fehler'?'<span class="dberr">Keine Verbind
 function aShell(content){
   const cnt=openM().length,kmN=kmOpen().length,buN=(S.bus||[]).filter(b=>b.status==='pruefen').length;
   return `<header class="atop"><img class="logo" src="${LOGO}" alt="Clean Service by Scaramuzzo" width="2059" height="650"><span class="brand-tx">Verwaltung Fahrzeuge</span><button class="who" data-act="sheet" data-s="account" aria-label="Konto"><i>${S.user.initials}</i><span class="who-r">${esc(S.user.name)}</span></button></header>
-  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}${k==='bussen'&&buN?`<b class="cnt">${buN}</b>`:''}${k==='kontrollen'&&koDueN()?`<b class="cnt" style="background:#E3A325">${koDueN()}</b>`:''}</button>`).join('')}</nav>
+  <div class="ashell"><nav class="anav" aria-label="Verwaltung">${ADM_NAV.map(([k,l,i])=>`<button class="anav-i${k==='abgaben'?' anav-sub':''} ${S.aView===k||(k==='fahrzeuge'&&S.aView==='fahrzeug')?'on':''}" data-act="aview" data-v="${k}">${ic(i)}<span>${l}</span>${k==='meldungen'&&cnt?`<b class="cnt">${cnt}</b>`:''}${k==='uebernahmen'&&kmN?`<b class="cnt">${kmN}</b>`:''}${k==='bussen'&&buN?`<b class="cnt">${buN}</b>`:''}${k==='kontrollen'&&koDueN()?`<b class="cnt" style="background:#E3A325">${koDueN()}</b>`:''}</button>`).join('')}</nav>
   <main class="amain">${content}</main></div>
   ${S.aSel?aDrawer():''}${S.kmSel?kmDrawer():''}${S.busSel?busDrawer():''}${S.modal?aModal():''}${S.tbM?tbModal():''}`;
 }
@@ -1836,7 +1838,7 @@ function aDash(){
   `<div class="kpis">${kpi('Offene Meldungen',om.length,crit?`${crit} mit hoher Priorität`:'Keine mit hoher Priorität',crit?'danger':'')}${kpi('Tankkosten '+now.toLocaleDateString('de-CH',{month:'long'}),chf(cost),`${tk.length} Tankvorgänge`)}${kpi('Fahrzeuge zugeteilt',`${asg} / ${VEH.length}`,`${shop} in Werkstatt`)}${kpi('Vorgänge 7 Tage',wk,'Tanken, Meldungen, Übernahmen')}${kpi('Km-Abweichungen',kmOpen().length,kmOpen().length?kmOpen().slice(0,3).map(h=>'+'+fmtKm(h.kmc.diff)+' km').join(', ')+' ohne Formular':'Keine offenen Fälle',kmOpen().length?'danger':'')}</div>
   ${kmOpen().slice(0,3).map(kmAlert).join('')}${kmOpen().length>3?`<p class="hint">Weitere ${kmOpen().length-3} offene Km-Abweichungen unter <button class="linkbtn" data-act="aview" data-v="uebernahmen">Übernahmen</button>.</p>`:''}${koAlert()}
   <div class="acols"><section class="apanel"><div class="apanel-h"><h2>Offene Meldungen</h2><button class="linkbtn" data-act="aview" data-v="meldungen">Alle anzeigen</button></div>${om.length?`<div class="mlist">${sortM(om).slice(0,6).map(mRow).join('')}</div>`:'<p class="empty pad">Keine offenen Meldungen.</p>'}</section>
-  <section class="apanel"><div class="apanel-h"><h2>Letzte Aktivität</h2></div><ul class="feed">${feed.map(h=>{const [i,tn]=evIcon(h);const v=veh(h.veh);return `<li><span class="ev-ic t-${tn}">${ic(i)}</span><span><b>${esc(evTitle(h))}</b> · ${esc(v.model)} ${esc(v.plate)}<small>${esc(h.who)} · ${rel(h.at)}</small></span></li>`;}).join('')}</ul></section></div>`;
+  <section class="apanel"><div class="apanel-h"><h2>Letzte Aktivität</h2></div><ul class="feed">${feed.map(h=>{const [i,tn]=evIcon(h);const v=veh(h.veh);return `<li><span class="ev-ic t-${tn}">${ic(i)}</span><span><b>${esc(evTitle(h))}</b> · ${esc(v.model)} ${esc(v.plate)}<small>${esc(h.who)} · ${rel(h.at)}</small></span><button class="secondary sm feed-pdf" data-act="pdf" data-id="${esc(h.id)}" aria-label="PDF ${esc(evTitle(h))} ${esc(h.id)} öffnen">PDF</button></li>`;}).join('')}</ul></section></div>`;
 }
 
 function aMeldungen(){
@@ -1909,6 +1911,7 @@ function aFahrzeug(){
       <label class="field" for="e-fuel"><span>Antrieb</span><select id="e-fuel" name="fuel">${Object.entries(DRIVE_L).map(([k,l])=>`<option value="${k}" ${(v.fuel||'')===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
       <label class="field" for="e-status"><span>Status</span><select id="e-status" name="status">${Object.entries(VST_L).map(([k,l])=>`<option value="${k}" ${v.status===k?'selected':''}>${l}</option>`).join('')}</select></label>
       <label class="cbx" for="e-buero"><input id="e-buero" name="buero" type="checkbox" ${v.buero?'checked':''}> Büroauto: Übernahme und Abgabe ohne Schlüssel- und Fahrzeugfotos</label>
+      <label class="cbx" for="e-geteilt"><input id="e-geteilt" name="geteilt" type="checkbox" ${v.geteilt?'checked':''}> Geteiltes Fahrzeug: Mehrere Mitarbeitende fahren es abwechselnd. Keine automatische Busse bei fehlender Abgabe.</label>
       ${pannenFields(v)}
       <p class="err" id="ferr" role="alert" hidden></p>
       <button class="primary" type="submit">Änderungen speichern</button>
@@ -2000,6 +2003,27 @@ function aUeb(){
   <section class="apanel"><div class="apanel-h"><h2>Letzte Übernahmen und Abgaben</h2></div><ul class="evs flat">${hist.map(h=>evItem(h,true)).join('')}</ul></section>`;
 }
 
+/* ===== Abgaben: Verlauf aller Fahrzeugabgaben ===== */
+function aAbgaben(){
+  const all=S.history.filter(h=>h.kind==='uebernahme').sort((a,b)=>a.at-b.at);
+  const abg=all.filter(h=>h.sub==='rueckgabe');
+  const next=h=>all.find(x=>x.veh===h.veh&&x.at>h.at&&x.sub!=='rueckgabe')||null;
+  const issues=a=>[...(a.missing||[]).map(k=>'fehlt: '+deL('zub_'+k)),a.notClean?'nicht sauber':''].filter(Boolean);
+  const F=S.abgF||(S.abgF={veh:'',zr:'90'});
+  const now=Date.now(),lim=F.zr==='alle'?0:now-(+F.zr)*86400000;
+  const L=abg.filter(h=>(!F.veh||h.veh===F.veh)&&+h.at>=lim).sort((a,b)=>b.at-a.at);
+  const m0=new Date();m0.setDate(1);m0.setHours(0,0,0,0);
+  const monat=abg.filter(h=>h.at>=m0).length,mitH=L.filter(h=>issues(h).length).length;
+  const fehlt=(S.abg||[]).filter(b=>b.status!=='storno').length;
+  const vehs=[...new Set(abg.map(h=>h.veh))].map(id=>[...VEH,...VEH_GONE].find(v=>v.id===id)).filter(Boolean).sort((a,b)=>+a.nr-+b.nr);
+  const rows=L.map(h=>{const v=veh(h.veh),n=next(h),is=issues(h);
+    return `<tr><td>${dS(h.at)}<small>${rel(h.at)}</small></td><td>${vLabel(v)}</td><td>${esc(h.who)}<small>${h.pn?'PN '+esc(h.pn):''}</small></td><td class="r num">${h.km!=null?fmtKm(h.km)+' km':'–'}</td><td>${is.length?`<span class="warn-t">${esc(is.join(', '))}</span>`:'<span class="muted">Keine</span>'}${h.note?`<small>${esc(h.note)}</small>`:''}</td><td>${n?`${esc(n.who)}<small>${dS(n.at)}${n.km!=null&&h.km!=null&&n.km-h.km>=2?` · <span class="warn-t">+${fmtKm(n.km-h.km)} km</span>`:''}</small>`:'<span class="muted">Noch frei</span>'}</td><td class="docs"><button class="secondary sm" data-act="pdf" data-id="${esc(h.id)}">PDF</button></td></tr>`;}).join('');
+  return aHead('Abgaben','Alle Fahrzeugabgaben der Mitarbeitenden auf einen Blick – mit Zustand, Kilometerstand und wer das Fahrzeug danach übernommen hat.')+
+  `<div class="kpis">${kpi('Abgaben '+new Date().toLocaleDateString('de-CH',{month:'long'}),monat,'erfasste Abgaben')}${kpi('Mit Hinweisen',mitH,'Zubehör fehlt oder nicht sauber',mitH?'danger':'')}${kpi('Fehlende Abgaben',fehlt,fehlt?'automatische Bussen, siehe Bussen':'Keine erkannt',fehlt?'danger':'')}</div>
+  <section class="apanel"><div class="apanel-h"><h2>Verlauf</h2><span class="muted">${L.length} Abgaben</span></div>
+  <div class="toolbar filters" style="padding:12px 16px 4px;gap:12px"><label class="field" for="abgveh"><span>Fahrzeug</span><select id="abgveh" data-abgf="veh"><option value="">Alle Fahrzeuge</option>${vehs.map(v=>`<option value="${v.id}" ${F.veh===v.id?'selected':''}>Nr. ${esc(v.nr)} ${esc(v.model)} · ${esc(v.plate||'')}</option>`).join('')}</select></label><label class="field" for="abgzr"><span>Zeitraum</span><select id="abgzr" data-abgf="zr">${[['30','Letzte 30 Tage'],['90','Letzte 90 Tage'],['365','Letztes Jahr'],['alle','Alle']].map(([k,l])=>`<option value="${k}" ${F.zr===k?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  ${L.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Abgegeben</th><th>Fahrzeug</th><th>Mitarbeiter</th><th class="r">Km-Stand</th><th>Zustand und Zubehör</th><th>Danach übernommen von</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="empty pad">Keine Abgaben in diesem Zeitraum.</p>'}</section>`;
+}
 
 /* ===== Km-Abgleich Abgabe → Übernahme (Verwaltung) ===== */
 const KMR_L={busse:'Busse verfügt',stellung:'Stellungnahme angefragt',ok:'Kein Verstoss'};
@@ -2040,7 +2064,7 @@ function kmDrawer(){
     k.state==='ok'?'':`<label class="fl" for="kmnote">Notiz (optional)</label><input id="kmnote" class="inp" placeholder="z. B. Stellungnahme erhalten, Fahrer bestätigt"><div class="kbtns"><button class="primary sm kbusse" data-act="kmbusse" data-who="${esc(who)}" data-pn="${esc(wpn)}">Busse CHF 100${who?' an '+esc(who):''}</button><button class="secondary sm" data-act="kmset" data-st="ok">Kein Verstoss, erledigt</button></div>`;
   return `<div class="scrim" data-act="kmclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Km-Abgleich ${h.id}">
   <div class="drawer-h"><div><span class="ev-id">Km-Abgleich · Nr. ${esc(v.nr)} ${esc(v.model)} ${esc(v.plate||'')}</span><h2>${k.state==='abw'?fmtKm(k.diff)+' km ohne Formular':k.state==='tipp'?'Km-Stand tiefer als bei der Abgabe':'Km-Stand stimmt'} ${kmStatus(h)}</h2></div><button class="iconbtn" data-act="kmclose" aria-label="Schliessen">${ic('x')}</button></div>
-  <div class="drawer-b"><section class="apanel pad"><h3 class="h3">Was ist passiert?</h3><ul class="ktl">${tl.join('')}</ul></section>${hint}${dec}<p class="hint">Übernahme ${esc(h.id)} · Abgabe ${esc(k.abg.id)}</p></div></aside>${S.kmB?kmBusseModal(h):''}`;
+  <div class="drawer-b"><section class="apanel pad"><h3 class="h3">Was ist passiert?</h3><ul class="ktl">${tl.join('')}</ul></section>${hint}${dec}<div class="kbtns km-pdfs"><button class="secondary sm" data-act="pdf" data-id="${esc(k.abg.id)}">PDF Abgabe <span class="muted">${esc(k.abg.id)}</span></button><button class="secondary sm" data-act="pdf" data-id="${esc(h.id)}">PDF Übernahme <span class="muted">${esc(h.id)}</span></button></div></div></aside>${S.kmB?kmBusseModal(h):''}`;
 }
 /* Busse CHF 100 bei km ohne Formular: Mail an Personal + Beekeeper */
 function kmVehTxt(v){return `Nr. ${v.nr} ${v.model}${v.plate?' · '+v.plate:''}`;}
@@ -2063,6 +2087,19 @@ function kmBusseModal(h){const m=S.kmB,v=veh(h.veh),k=h.kmc;
 Object.assign(A,{
   kmsel:b=>{S.kmSel=b.dataset.id;render();},
   kmclose:()=>{S.kmSel=null;S.kmB=null;render();},
+  abgstorno:b=>{S.abgM={id:b.dataset.id};render();},
+  abgmclose:()=>{if(S.abgM&&S.abgM.busy)return;S.abgM=null;render();},
+  abgstornogo:async()=>{const m=S.abgM,b=(S.abg||[]).find(x=>x.id===(m&&m.id));if(!b)return;m.grund=(document.getElementById('abg-grund').value||'').trim();
+    if(!m.grund){m.err='Bitte kurz den Grund angeben.';render();return;}
+    m.busy=true;m.err='';render();const info={at:new Date().toISOString(),by:S.user.name,grund:m.grund};
+    try{if(b.mail&&b.mail.ok){if(!MAIL_ENDPOINT)throw new Error('Mail nur in der veröffentlichten App');const r=await fetch(MAIL_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:TB_MAIL_TO,cc:TB_MAIL_CC,subject:`Busse entfällt · fehlende Abgabe · ${abgVeh(b)} · ${b.prev.who}`,html:abgMailHtml(b,info)})});if(!r.ok)throw new Error('HTTP '+r.status);info.mail=true;}
+      await rpc('fz_abgabe_storno',{p_code:S.adminCode,p_id:b.id,p_info:info});b.status='storno';b.storno=info;S.abgM=null;toast(info.mail?'Busse zurückgenommen · Personalabteilung informiert':'Busse zurückgenommen');render();}
+    catch(e){console.warn(e);m.busy=false;m.err='Zurücknehmen fehlgeschlagen. Bitte Verbindung prüfen und nochmals versuchen.';render();}},
+  abgresend:async el=>{const b=(S.abg||[]).find(x=>x.id===el.dataset.id);if(!b)return;el.disabled=true;
+    let bk=b.bk&&b.bk.ok?b.bk:null;if(!bk){try{const j=await bkSend(b.prev.pn?String(b.prev.pn):'',b.prev.who,abgBkText(b));bk={ok:true,an:j.an,at:new Date().toISOString()};}catch(e){bk={ok:false,err:e.message||'Fehler'};}}
+    let mail=b.mail&&b.mail.ok?b.mail:null;if(!mail){try{if(!MAIL_ENDPOINT)throw new Error('Mail nur in der veröffentlichten App');const r=await fetch(MAIL_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:TB_MAIL_TO,cc:TB_MAIL_CC,subject:`Bitte um Fahrzeugbusse CHF 100 · fehlende Abgabe · ${abgVeh(b)} · ${b.prev.who}`,html:abgMailHtml(b,null,bk)})});if(!r.ok)throw new Error('HTTP '+r.status);mail={ok:true,at:new Date().toISOString()};}catch(e){mail={ok:false,err:e.message};}}
+    try{await rpc('fz_abgabe_resend',{p_code:S.adminCode,p_id:b.id,p_status:mail.ok?'gesendet':'fehler',p_patch:{mail,bk}});}catch(e){console.warn(e);}
+    Object.assign(b,{mail,bk,status:mail.ok?'gesendet':'fehler'});toast(mail.ok&&bk.ok?'Mail und Beekeeper-Nachricht gesendet':mail.ok?'Mail gesendet · Beekeeper fehlgeschlagen':'Senden fehlgeschlagen');render();},
   kmbusse:b=>{const n=document.getElementById('kmnote');S.kmB={name:b.dataset.who||'',pn:b.dataset.pn||'',note:n&&n.value.trim()||''};render();setTimeout(()=>{const f=document.getElementById(S.kmB&&S.kmB.name?'kmb-pn':'kmb-name');if(f&&!f.value)f.focus();},30);},
   kmbclose:()=>{if(S.kmB&&S.kmB.busy)return;S.kmB=null;render();},
   kmbgo:async()=>{const h=S.history.find(x=>x.id===S.kmSel);if(!h||!S.kmB)return;const m=S.kmB;
@@ -2191,7 +2228,7 @@ function aBussen(){
   const rows=L.map(b=>{const v=[...VEH,...VEH_GONE].find(x=>x.id===b.veh);return `<tr class="click" data-act="bussel" data-id="${esc(b.id)}" tabindex="0"><td>${b.datum?new Date(b.datum+'T00:00').toLocaleDateString('de-CH'):'–'}<small>${b.uhrzeit?esc(b.uhrzeit)+' Uhr':''}</small></td><td>${v?`<b>Nr. ${esc(v.nr)}</b> ${esc(v.model)}<small>${esc(v.plate||'')}</small>`:esc(b.kontrollschild||'–')}</td><td>${esc(b.uebertretung||'–')}<small>${esc(b.ort||'')}</small></td><td class="r num">${b.betrag!=null?chf(+b.betrag+(+b.gebuehren||0)):'–'}</td><td>${b.who?esc(b.who)+`<small>${b.pn?'PN '+esc(String(b.pn)):''}</small>`:'<span class="muted">–</span>'}</td><td><span class="st ${b.status==='pruefen'?'st-km':b.status==='erledigt'?'st-ok':'st-bearbeitung'}">${BUS_ST[b.status]||b.status}</span></td></tr>`;}).join('');
   return aHead('Bussen','Busse fotografieren oder als PDF hochladen – die App liest sie aus und findet anhand der Übernahmen und Abgaben heraus, wer das Fahrzeug zu diesem Zeitpunkt hatte.')+
   `<div class="kpis">${kpi('Bitte prüfen',L.filter(b=>b.status==='pruefen').length,'Fahrer noch offen',L.some(b=>b.status==='pruefen')?'danger':'')}${kpi('Bussen '+y,yr.length,`${yr.filter(b=>b.status!=='pruefen').length} zugewiesen`)}${kpi('Total '+y,chf(sum),'Bussen inkl. Gebühren')}</div>
-  <section class="apanel pad" style="margin-top:16px">${scan}</section>
+  ${abgPanel()}<section class="apanel pad" style="margin-top:16px">${scan}</section>
   <section class="apanel"><div class="apanel-h"><h2>Erfasste Bussen</h2><span class="muted">${L.length}</span></div>${L.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Datum</th><th>Fahrzeug</th><th>Übertretung</th><th class="r">Betrag</th><th>Fahrer</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="empty pad">${S.busLoaded?'Noch keine Bussen erfasst.':'Bussen werden geladen …'}</p>`}</section>`;
 }
 function busDrawer(){
@@ -2205,6 +2242,26 @@ function busDrawer(){
   <div class="kbtns"><button class="primary sm" data-act="busupd">Fahrer speichern</button>${b.status!=='erledigt'&&b.who?'<button class="secondary sm" data-act="busupd" data-st="erledigt">Als erledigt markieren</button>':''}${b.status==='erledigt'?'<button class="secondary sm" data-act="busupd" data-st="zugewiesen">Wieder öffnen</button>':''}</div>
   <h3 class="h3">Beleg</h3><div id="bbeleg">${S.busBeleg&&S.busBeleg.id===b.id?(S.busBeleg.src?(S.busBeleg.src.startsWith('data:application/pdf')?`<a href="${S.busBeleg.src}" download="${esc(b.id)}.pdf">PDF öffnen</a>`:`<img class="bbeleg" src="${S.busBeleg.src}" alt="Beleg">`):'<p class="hint">Kein Beleg gespeichert.</p>'):'<p class="hint">Beleg wird geladen …</p>'}</div></div></aside>`;
 }
+/* Automatische Bussen: fehlende Abgabe */
+const ABG_ST={neu:['st-km','Wird gesendet'],gesendet:['st-km','CHF 100 · gesendet'],fehler:['st-km','Mail fehlgeschlagen'],storno:['st-ok','Zurückgenommen']};
+async function loadAbgabe(){try{S.abg=await rpc('fz_abgabe_list',{p_code:S.adminCode})||[];}catch(e){console.warn(e);S.abg=S.abg||[];}if(S.account==='admin')render();}
+function abgVeh(b){const v=[...VEH,...VEH_GONE].find(x=>x.id===b.veh);return v?`Nr. ${v.nr} ${v.model}${v.plate?' · '+v.plate:''}`:(b.vehTxt||b.veh||'Fahrzeug');}
+function abgPanel(){const L=S.abg||[];if(!L.length)return '';
+  const rows=L.map(b=>{const st=ABG_ST[b.status]||ABG_ST.neu,v=[...VEH,...VEH_GONE].find(x=>x.id===b.veh);
+    const info=b.status==='storno'?`<small>Zurückgenommen ${b.storno&&b.storno.at?dS(new Date(b.storno.at)):''}${b.storno&&b.storno.by?' durch '+esc(b.storno.by):''}</small>`:`<small>${b.mail&&b.mail.ok?'Mail gesendet':'Mail nicht gesendet'} · ${b.bk&&b.bk.ok?'Beekeeper gesendet':'Beekeeper nicht gesendet'}</small>`;
+    const acts=b.status==='storno'?'':`<div class="kbtns" style="margin-top:6px">${b.status==='fehler'||b.status==='neu'?`<button class="primary sm" data-act="abgresend" data-id="${esc(b.id)}">Nochmals senden</button>`:''}<button class="secondary sm" data-act="abgstorno" data-id="${esc(b.id)}">Busse zurücknehmen</button></div>`;
+    return `<tr><td>${b.neu&&b.neu.at?dS(new Date(b.neu.at)):'–'}</td><td><b>${esc(b.prev.who)}</b><small>${b.prev.pn?'PN '+esc(b.prev.pn):''}</small></td><td>Fehlende Abgabe<small>Übernommen ${b.prev.at?dS(new Date(b.prev.at)):''} · nächste Übernahme ${esc(b.neu.who||'')}</small></td><td>${v?`<b>Nr. ${esc(v.nr)}</b><small>${esc(v.plate||'')}</small>`:esc(b.vehTxt||'')}</td><td><span class="st st-bearbeitung">automatisch</span> <span class="st ${st[0]}">${st[1]}</span>${info}${acts}</td></tr>`;}).join('');
+  const offen=L.filter(b=>b.status==='fehler'||b.status==='neu').length;
+  return `<section class="apanel" style="margin-top:16px"><div class="apanel-h"><h2>Fehlende Abgaben · automatische Bussen</h2><span class="muted">${L.filter(b=>b.status!=='storno').length}</span></div><p class="hint" style="margin:0;padding:12px 16px 0">Übernimmt jemand ein Fahrzeug und die vorherige Person hat keine Abgabe erfasst, gehen sofort die Mail an die Personalabteilung und die Beekeeper-Nachricht raus. Ausgenommen sind Fahrzeuge mit «Geteiltes Fahrzeug».</p>${offen?`<p class="warnbox" style="margin:12px 16px 0">${offen===1?'1 Busse konnte':offen+' Bussen konnten'} nicht gesendet werden. Bitte «Nochmals senden».</p>`:''}<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Datum</th><th>Mitarbeiter</th><th>Grund</th><th>Fahrzeug</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>`+abgModal();}
+function abgModal(){const m=S.abgM,b=m&&(S.abg||[]).find(x=>x.id===m.id);if(!b)return '';
+  return `<div class="scrim top" data-act="abgmclose"></div><div class="modal tb-modal" role="dialog" aria-modal="true" aria-labelledby="abg-h"><h2 id="abg-h">Busse zurücknehmen?</h2><p class="hint">${b.mail&&b.mail.ok?'Die Personalabteilung erhält eine kurze Mail (Kopie an die Logistik), dass die Busse für '+esc(b.prev.who)+' entfällt.':'Die Mail an die Personalabteilung wurde nie gesendet. Die Busse wird nur hier zurückgenommen.'}</p>
+  <div class="apanel pad tb-box"><div class="tb-sl"><span>Mitarbeiter</span><b>${esc(pnTxt(b.prev.who,b.prev.pn))}</b></div><div class="tb-sl"><span>Fahrzeug</span><b>${esc(abgVeh(b))}</b></div><div class="tb-sl"><span>Nächste Übernahme</span><b>${esc(b.neu.who||'')} · ${b.neu.at?dS(new Date(b.neu.at)):''}</b></div></div>
+  <label class="field" for="abg-grund" style="margin-top:14px"><span>Grund</span><input id="abg-grund" value="${esc(m.grund||'')}" placeholder="z. B. Fahrzeug war in der Werkstatt" ${m.busy?'disabled':''}></label>
+  ${m.err?`<p class="err" role="alert">${esc(m.err)}</p>`:''}<div class="frow"><button class="secondary" data-act="abgmclose" ${m.busy?'disabled':''}>Abbrechen</button><button class="primary" data-act="abgstornogo" ${m.busy?'disabled':''}>${m.busy?'Wird gesendet …':'Busse zurücknehmen'}</button></div></div>`;}
+function abgBkText(b){return `Hallo ${b.prev.who}\n\nDu hast das Fahrzeug ${abgVeh(b)} am ${new Date(b.prev.at).toLocaleDateString('de-CH')} übernommen, aber in der Fahrzeug-App keine Abgabe erfasst. Am ${new Date(b.neu.at).toLocaleDateString('de-CH')} um ${new Date(b.neu.at).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'})} hat eine andere Person das Fahrzeug übernommen.\n\nGemäss Dienstwagenreglement wird dafür eine Busse von CHF 100.– ausgestellt. Die Personalabteilung meldet sich mit den Details.\n\nBitte fülle bei jeder Rückgabe das Abgabeformular in der Fahrzeug-App aus.\n\nPersonalabteilung`;}
+function abgMailHtml(b,storno,bk){const row=(l,x)=>`<tr><td style="padding:7px 12px 7px 0;color:#6A7378;width:190px;vertical-align:top;border-bottom:1px solid #E2E7EA">${l}</td><td style="padding:7px 0;border-bottom:1px solid #E2E7EA">${x}</td></tr>`;const D=x=>x?new Date(x).toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'}):'';
+  const head=storno?`<div style="background:#E6F5EE;color:#1F7A4D;border-radius:8px;padding:12px 16px;font-weight:700;margin-bottom:16px">Busse entfällt – fehlende Fahrzeugabgabe</div><p>Guten Tag</p><p>Die automatisch beantragte Fahrzeugbusse für ${esc(pnTxt(b.prev.who,b.prev.pn))} wurde von der Verwaltung zurückgenommen. Bitte keine Busse ausstellen beziehungsweise eine bereits ausgestellte Busse stornieren.</p>`:`<div style="background:#FBEDEB;color:#B8433A;border-radius:8px;padding:12px 16px;font-weight:700;margin-bottom:16px">Bitte um Fahrzeugbusse CHF 100.– – fehlende Fahrzeugabgabe</div><p>Guten Tag</p><p>Die Fahrzeug-App hat eine fehlende Fahrzeugabgabe erkannt. Wir bitten euch, gemäss Dienstwagenreglement eine Fahrzeugbusse von CHF 100.– auszustellen.</p>`;
+  return `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#2B3135;line-height:1.55">${head}<table style="border-collapse:collapse;width:100%;font-size:14px;margin:6px 0 14px">${row('Mitarbeiter',`<b>${esc(pnTxt(b.prev.who,b.prev.pn))}</b>`)}${row('Busse',storno?'<b>entfällt</b>':'<b>CHF 100.–</b>')}${row('Fahrzeug',`<b>${esc(abgVeh(b))}</b>`)}${row('Übernommen',`${D(b.prev.at)} · ${fmtKm(b.prev.km)} km`)}${row('Abgabe','<b style="color:#B8433A">nicht erfasst</b>')}${row('Nächste Übernahme',`${esc(pnTxt(b.neu.who,b.neu.pn))} · ${D(b.neu.at)} · ${fmtKm(b.neu.km)} km`)}${storno&&storno.grund?row('Grund',esc(storno.grund)):''}${!storno&&bk?row('Beekeeper',bk.ok?`${esc(b.prev.who)} wurde vom HR BOT informiert`:'<span style="color:#B8433A">Nachricht konnte nicht gesendet werden – bitte Mitarbeiter direkt informieren</span>'):''}${row(storno?'Zurückgenommen von':'Ausgelöst von',`${esc(S.user&&S.user.name||'Verwaltung')}, ${D(new Date())}`)}</table><p style="margin:0">Freundliche Grüsse<br>Clean Service Scaramuzzo AG · Fahrzeuge</p><p style="color:#6A7378;font-size:12px;margin-top:14px">Fall ${esc(b.prev.id)} · ${esc(b.neu.id)}</p></div>`;}
 async function loadBussen(){try{S.bus=await rpc('fz_bussen_list',{p_code:S.adminCode})||[];S.busLoaded=true;}catch(e){console.warn(e);S.busLoaded=true;toast('Bussen konnten nicht geladen werden');}if(S.account==='admin')render();}
 function busCompress(file){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=()=>no(new Error('Datei konnte nicht gelesen werden'));r.onload=()=>{
   if(file.type==='application/pdf'){const b=String(r.result).split(',')[1];if(b.length>3.9*1024*1024)return no(new Error('Das PDF ist zu gross (max. ca. 3 MB).'));return ok({mediaType:'application/pdf',data:b,preview:String(r.result)});}
@@ -2242,6 +2299,7 @@ Object.assign(A,{
     try{await rpc('fz_busse_save',{p_code:S.adminCode,p_id:x.id,p_data:nx,p_beleg:null});Object.assign(x,nx);toast('Gespeichert');render();}catch(e){console.warn(e);toast('Speichern fehlgeschlagen – bitte Verbindung prüfen');}}
 });
 app.addEventListener('change',e=>{const i=e.target;if(i&&i.matches&&i.matches('[data-bfile]')&&i.files&&i.files[0])busRead(i.files[0]);});
+app.addEventListener('change',e=>{const i=e.target;if(i&&i.matches&&i.matches('[data-abgf]')){(S.abgF=S.abgF||{veh:'',zr:'90'})[i.dataset.abgf]=i.value;render();}});
 app.addEventListener('input',e=>{const i=e.target,sc=S.busScan;if(!sc||!sc.daten||!i)return;if(i.dataset&&i.dataset.bf){const v=i.value.trim();sc.daten[i.dataset.bf]=v===''?null:(i.type==='number'?Number(v):v);}else if(i.id==='bnote')sc.note=i.value;});
 app.addEventListener('change',e=>{const i=e.target;if(i&&i.id==='bwho'&&S.busScan)S.busScan.who=i.value;});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.busSel&&!S.modal){S.busSel=null;render();}});
@@ -2811,7 +2869,7 @@ document.addEventListener('drop',e=>{if(!S.tbM||S.tbM.t!=='drop')return;e.preven
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.tbM&&!S.tbM.busy){S.tbM=null;render();}});
 
 function renderAdmin(){
-  const V={dash:aDash,meldungen:aMeldungen,fahrzeuge:aFahrzeuge,fahrzeug:aFahrzeug,tanken:aTanken,uebernahmen:aUeb,kontrollen:aKontrollen,bussen:aBussen,users:aUsers,settings:aSettings};
+  const V={dash:aDash,meldungen:aMeldungen,fahrzeuge:aFahrzeuge,fahrzeug:aFahrzeug,tanken:aTanken,uebernahmen:aUeb,abgaben:aAbgaben,kontrollen:aKontrollen,bussen:aBussen,users:aUsers,settings:aSettings};
   return aShell((V[S.aView]||aDash)());
 }
 function toast(msg){S.toast=msg;render();clearTimeout(toast._t);toast._t=setTimeout(()=>{S.toast=null;const el=document.querySelector('.toast');if(el)el.remove();},2200);}
@@ -2874,7 +2932,7 @@ app.addEventListener('submit',e=>{
     const pn=d.plate.replace(/\s/g,'').toUpperCase();
     if(VEH.some(v=>v!==self&&v.plate.replace(/\s/g,'').toUpperCase()===pn))return err(`Das Kennzeichen ${d.plate} ist bereits erfasst.`);
     const data={model:d.model,nr:d.nr,plate:d.plate.toUpperCase(),kind:d.kind,fuel:d.kind==='anhaenger'?null:(d.fuel||null)};
-    if(self){const pn=readPannen(d,err);if(!pn)return;Object.assign(data,pn);data.buero=d.buero==='on'&&d.kind!=='anhaenger';}
+    if(self){const pn=readPannen(d,err);if(!pn)return;Object.assign(data,pn);data.buero=d.buero==='on'&&d.kind!=='anhaenger';data.geteilt=d.geteilt==='on';}
     if(self){Object.assign(self,data,{status:d.status});dbVStatus(self);rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:self.id,p_data:vehData(self),p_removed:false}).then(()=>toast('Stammdaten gespeichert')).catch(()=>toast('Speichern fehlgeschlagen – bitte Verbindung prüfen'));}
     else{const nv=Object.assign({id:'v'+d.nr+'_'+Date.now().toString(36),lastKm:null,status:'aktiv'},data);const btn=f.querySelector('button[type=submit]');if(btn){btn.disabled=true;btn.textContent='Wird gespeichert …';}
       rpc('fz_vehicle_save',{p_code:S.adminCode,p_veh:nv.id,p_data:vehData(nv),p_removed:false}).then(()=>{VEH.push(nv);VEH.sort((a,b)=>+a.nr-+b.nr);S.modal=null;toast(`${d.model} (Nr. ${d.nr}) hinzugefügt`);}).catch(x=>{console.warn(x);if(btn){btn.disabled=false;btn.textContent='Hinzufügen';}err('Speichern fehlgeschlagen – bitte Verbindung prüfen und nochmals versuchen.');});}
@@ -3201,9 +3259,16 @@ async function dbInsert(rec,pnh){
   }
   return null;
 }
+/* Fehlende Abgabe der vorherigen Person: Server prüft und löst Busse aus (Mail + Beekeeper) */
+const ABG_ENDPOINT=location.protocol==='file:'?'':'/api/abgabe-check';
+function abgabeCheck(rec){
+  if(!ABG_ENDPOINT||!rec||rec.kind!=='uebernahme'||rec.sub==='rueckgabe'||!/^FZ-\d{4}-\d{5}$/.test(rec.id||''))return;
+  const v=veh(rec.veh);const vehTxt=v?`Nr. ${v.nr} ${v.model}${v.plate?' · '+v.plate:''}`:'';
+  fetch(ABG_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:rec.id,vehTxt}),keepalive:true}).catch(e=>console.warn(e));
+}
 async function flushPending(){
   const a=pendLoad();if(!a.length)return;const rest=[];
-  for(const p of a){try{const id=await rpc('fz_insert',{p_rec:lightRec(p.rec),p_daten:fullRec(p.rec),p_pnh:p.pnh});const h=S.history.find(x=>x.id===p.rec.id);if(h){h.id=id;delete h._unsynced;}}catch(e){rest.push(p);}}
+  for(const p of a){try{const id=await rpc('fz_insert',{p_rec:lightRec(p.rec),p_daten:fullRec(p.rec),p_pnh:p.pnh});const h=S.history.find(x=>x.id===p.rec.id);if(h){h.id=id;delete h._unsynced;}abgabeCheck(Object.assign({},p.rec,{id}));}catch(e){rest.push(p);}}
   pendSave(rest);if(a.length!==rest.length&&S.account)render();
 }
 setInterval(()=>{if(navigator.onLine!==false)flushPending();},30000);
@@ -3234,6 +3299,7 @@ async function loadAdmin(quiet){
     S.history.forEach(h=>{const v=VEH.find(x=>x.id===h.veh);if(v&&h.km!=null)v.lastKm=Math.max(v.lastKm||0,h.km);});
     S.dbState='ok';S.dbAt=new Date();
     if(!quiet||!S.busLoaded)loadBussen();
+    loadAbgabe();
     if(!quiet||!S.koLoaded)loadKontrollen();
     if(!quiet||!S.tbLoaded)loadTankabgleich();
   }catch(e){console.warn(e);S.dbState='fehler';}
@@ -3273,7 +3339,7 @@ async function loadDbUsers(){try{const l=await rpc('fz_users');(l||[]).forEach(a
 loadDbUsers();
 
 /* Fahrzeugstamm: in der Verwaltung hinzugefügte, geänderte und entfernte Fahrzeuge */
-function vehData(v){const o={};['nr','model','plate','kind','fuel','buero','ins','insTel','garage','garageAddr','garageMail','contract'].forEach(k=>{if(v[k]!==undefined)o[k]=v[k];});return o;}
+function vehData(v){const o={};['nr','model','plate','kind','fuel','buero','geteilt','ins','insTel','garage','garageAddr','garageMail','contract'].forEach(k=>{if(v[k]!==undefined)o[k]=v[k];});return o;}
 function removeVeh(id){const i=VEH.findIndex(v=>v.id===id);if(i>=0){const [v]=VEH.splice(i,1);v.removed=true;if(!VEH_GONE.some(x=>x.id===id))VEH_GONE.push(v);}if(S.vehicleId===id&&S.screen!=='flow'&&S.screen!=='abschlepp')S.vehicleId=null;}
 async function loadDbVehicles(){
   try{const l=await rpc('fz_vehicles');
